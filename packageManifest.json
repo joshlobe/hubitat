@@ -21,7 +21,7 @@
 		{
 			"id" : "45hfo4gy-fd83-8v7e-fed6-vhe34jfu4b56",
 			"name" : "rule_machine_manager.js",
-			"location" : ""
+			"location" : "https://raw.githubusercontent.com/joshlobe/hubitat_rule_manager/main/rule_machine_manager.js"
 		}
 	]
 }
