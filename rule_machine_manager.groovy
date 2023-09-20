@@ -1,19 +1,31 @@
+/**
+ *  Rule Machine Manager
+ *
+ *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *	in compliance with the License. You may obtain a copy of the License at:
+ *
+ *		http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *	for the specific language governing permissions and limitations under the License.
+ *
+ * ver. 1.0.0 2023-09-20 jlobe  - Initial public release
+ */
+
+def version() { "1.0.0" }
+import hubitat.helper.RMUtils
+
 definition(
     name: "Rule Machine Manager",
     namespace: "ruleMachineManager",
     author: "Josh Lobe",
     description: "Visual interface for Managing Rule Machine Rules.",
     category: "Convenience",
+    importUrl: "https://raw.githubusercontent.com/joshlobe/hubitat_rule_manager/main/rule_machine_manager.groovy",
     iconUrl: "",
     iconX2Url: ""
 )
-
-def version() {
-    version = "1.0.0"
-    return version
-}
-
-import hubitat.helper.RMUtils
 
 preferences {
     page(name: "mainPage", install: true, uninstall: true) {
@@ -26,6 +38,14 @@ preferences {
             // Include jquery and sortable
             html += "<script src='https://code.jquery.com/jquery-3.6.0.js'></script>"
             html += "<script src='https://code.jquery.com/ui/1.13.2/jquery-ui.js'></script>"
+            
+            // Create new group button
+            html += '<div id="create_group">'
+                html += '<p>'
+                    html += 'Use the tool below to create a new Rule Group. The group will be added; and items can then be dragged to the new area.<br />'
+                    html += 'Type a name for the new group and click "Create". <input type="text" id="new_group_name" /> <span id="create_group_button" class="button">Create</span>'
+                html += '</p>'
+            html += '</div>'
             
             // Begin page html
             html += "<div id='rules_container'>"
@@ -133,12 +153,6 @@ preferences {
             }
             html += "</div>"
             
-            // Create new group button
-            html += '<div id="create_group">'
-                html += '<p>Use the tool below to create a new Rule Group. The group will be added to the section above; and items can then be dragged to the new area.<br />Type a name for the new group and click "Create".</p>'
-                html += '<input type="text" id="new_group_name" /> <span id="create_group_button" class="button">Create</span>'
-            html += '</div>'
-            
             // Create hidden form input and variables
             html += '<input type="hidden" name="userArray.type" value="text">'
             html += '<input type="hidden" name="userArray.multiple" value="false">'
@@ -154,7 +168,7 @@ preferences {
                 html += "ul.rulelist { list-style-type: none; padding: 5px; min-height: 40px; border: 1px solid #CCC; }"
                 html += "li.rule { padding: 5px 20px; cursor: pointer; margin-bottom: 2px; }"
                 html += "li.rule:hover { background-color: #EEE; }"
-                html += "div#create_group { margin-top: 20px; margin-bottom: 40px; }"
+                html += "div#create_group { margin-bottom: 20px; }"
                 html += "i.delete_group, i.expand, i.view_rule, i.drag_handle, i.edit { cursor: pointer; float: right; margin-right: 5px; }"
                 html += "i.delete_group:hover { color: red; }"
                 html += "i.expand:hover, i.drag_handle:hover, i.edit:hover { color: #1a77c9; }"
