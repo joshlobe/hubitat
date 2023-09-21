@@ -22,7 +22,7 @@ definition(
     author: "Josh Lobe",
     description: "Visual interface for Managing Rule Machine Rules.",
     category: "Convenience",
-    importUrl: "https://raw.githubusercontent.com/joshlobe/hubitat_rule_manager/main/rule_machine_manager.groovy",
+    importUrl: "https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.groovy",
     iconUrl: "",
     iconX2Url: ""
 )
