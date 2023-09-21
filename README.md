@@ -1,2 +1,2 @@
-# hubitat_rule_manager
-Rule Manager for Hubitat
+# Hubitat Apps and Drivers
+* Rule Machine Manager (Under initial development)
