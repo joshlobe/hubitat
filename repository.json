@@ -1,0 +1,15 @@
+{
+  "author": "Josh Lobe",
+  "gitHubUrl": "https://github.com/joshlobe/hubitat",
+  "packages": [
+    {
+      "id": "g89dbe4g-fd53-4gf4-bjj3-fhe784ng4kc5",
+      "name": "Rule Machine Manager",
+      "location": "https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/packageManifest.json",
+      "description": "Visual interface for Managing Rule Machine Rules.",
+      "tags": [
+        "Rule Manager"
+      ]
+    }
+  ]
+}
