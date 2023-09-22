@@ -2,10 +2,10 @@
 	"packageName": "Rule Machine Manager",
 	"minimumHEVersion": "2.3.5.152",
 	"author": "Josh Lobe",
-	"version": "1.0.0",
-	"dateReleased": "2023-09-20",
+	"version": "1.0.1",
+	"dateReleased": "2023-09-22",
 	"licenseFile": "",
-	"releaseNotes": "1.0.0 Initial Release",
+	"releaseNotes": "1.0.1 - Fixed sorting and added sorting features. Logic for new rules and deleted rules. Added copy functionality.",
 	"apps" : [
 		{
 			"id" : "6wjv6vft-geb7-n2ex-rq4c-vvd32wqw4379",
