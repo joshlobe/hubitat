@@ -15,9 +15,9 @@
  * ver. 1.1.0 2023-09-22 jlobe  - Huge UI update. Moved styles to local hubitat file system. Updated rules storage array.
  */
 
-def version() { "1.1.0" }
-def js_version() { "1.1.0" }
-def css_version() { "1.1.0" }
+def version() { "1.1.1" }
+def js_version() { "1.1.1" }
+def css_version() { "1.1.1" }
 
 import hubitat.helper.RMUtils
 import groovy.json.JsonSlurper
@@ -25,8 +25,8 @@ import groovy.json.JsonOutput
 import groovyx.net.http.HttpResponseException
 
 definition(
-    name: "Rule Machine Manager Alpha",
-    namespace: "ruleMachineManagerAlpha",
+    name: "Rule Machine Manager",
+    namespace: "ruleMachineManager",
     author: "Josh Lobe",
     description: "Visual interface for Managing Rule Machine Rules.",
     category: "Convenience",
