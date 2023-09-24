@@ -2,10 +2,10 @@
 	"packageName": "Rule Machine Manager",
 	"minimumHEVersion": "2.3.5.152",
 	"author": "Josh Lobe",
-	"version": "1.0.1",
-	"dateReleased": "2023-09-22",
+	"version": "1.1.0",
+	"dateReleased": "2023-09-24",
 	"licenseFile": "",
-	"releaseNotes": "1.0.1 - Fixed sorting and added sorting features. Logic for new rules and deleted rules. Added copy functionality.",
+	"releaseNotes": "1.1.0 - Improved UI/UX. New Options Panel. New options storage (convert on first page load).",
 	"apps" : [
 		{
 			"id" : "6wjv6vft-geb7-n2ex-rq4c-vvd32wqw4379",
@@ -22,6 +22,11 @@
 			"id" : "45hfo4gy-fd83-8v7e-fed6-vhe34jfu4b56",
 			"name" : "rule_machine_manager.js",
 			"location" : "https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.js"
+		},
+		{
+			"id" : "pefber8j-fd9r-snv0-ddr9-vhe98f7e9dv3",
+			"name" : "rule_machine_manager.css",
+			"location" : "https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.css"
 		}
 	]
 }

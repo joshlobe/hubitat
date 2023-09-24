@@ -1,43 +1,47 @@
 /*
 * Version 1.0.0 - Initial release
 * Version 1.0.1 - Sorting fixes and updates. Logic for new rules and deleted rules. 
+* Version 1.1.0 - Huge UI update. Moved styles to local stylesheet. Updated rules storage array.
 */
 jQuery( document ).ready( function( $ ) {
 
 	// Initial rulelist sortable
 	initialize_sort();
 
-	// Set initial input on page load
-	rebuildArray();
+	// Rebuild array on page load (if not updating settings)
+	if( ! $( 'div.preventRebuildArray' ).length ) {
+		
+		rebuildArray();
+	}
 	
 	// Edit title button
-	$( document ).on( 'click', 'i.edit', function() {
+	$( document ).on( 'click', 'div.edit_title_div', function() {
 		
 		// Get original value
-		var orig_value = $( this ).siblings( 'span.group_name' ).text();
-		var check_nodes = $( this ).siblings( 'span.group_name' ).html();
+		var orig_value = $( this ).parent().siblings( 'span.group_name' ).text();
+		var check_nodes = $( this ).parent().siblings( 'span.group_name' ).html();
 		
 		// If we are already editing, don't edit again
 		if( $( check_nodes ).length > 0 ) { return false; }
 		
 		// Create submit/cancel buttons and replace html
 		var edit_input = '<input type="text" class="edit_title_input" value="' + orig_value + '" />';
-		$( this ).siblings( 'span.group_name' ).html( edit_input );
+		$( this ).parent().siblings( 'span.group_name' ).html( edit_input );
 		
 		var edit_actions = '<span class="button submit_edit">Submit</span>';
 		edit_actions += '<span class="button cancel_edit">Cancel</span>';
 		edit_actions += '<input type="text" class="color_picker" />';
 		edit_actions += '<span class="button title_bold"><i class="material-icons">format_bold</i></button>';
-		$( this ).siblings( 'span.group_name_edit' ).html( edit_actions );
+		$( this ).parent().siblings( 'span.group_name_edit' ).html( edit_actions );
 		
 		// Check for current title color
-		var title_color = $( this ).parent().siblings( 'input.title_color' ).val();
+		var title_color = $( this ).parent().parent().siblings( 'input.title_color' ).val();
 		var set_color = title_color === '' ? '#000' : title_color;
 		
 		// Check for current title bold
-		var title_bold = $( this ).parent().siblings( 'input.title_bold' ).val();
+		var title_bold = $( this ).parent().parent().siblings( 'input.title_bold' ).val();
 		if( title_bold == 'true' ) {
-			$( this ).siblings( 'span.group_name_edit' ).children( 'span.title_bold' ).addClass( 'active' );
+			$( this ).parent().siblings( 'span.group_name_edit' ).children( 'span.title_bold' ).addClass( 'active' );
 		}
 	
 		// Set color picker
@@ -117,17 +121,31 @@ jQuery( document ).ready( function( $ ) {
 		// Create html for new container
 		var html = '';
 		html += '<div id="" class="rule_container">';
+		
+			// Check hide counts option
+			var check_counts = $( 'input#hide_counts' ).is( ':checked' ) ? 'display: none;' : '';
+		
+			// Hidden divs
             html += '<input type="hidden" class="title_color" />'
             html += '<input type="hidden" class="title_bold" />'
 			html += '<h4>';
 				html += '<span class="group_name">' + name + '</span>';
                 html += '<span class="group_name_edit"></em></span>';
-				html += '<span class="group_rule_count"><em>(0 items)</em></span>';
-				html += '<i class="material-icons delete_group" title="Delete Group">delete</i>';
-				html += '<i class="material-icons expand" title="Toggle Open/Close">file_upload</i>';
-				html += '<i class="material-icons drag_handle" title="Drag/Sort">reorder</i>'
-				html += '<i class="material-icons edit" title="Edit Title">edit</i>'
+				html += '<span class="group_rule_count" style="' + check_counts + '"><em>(0 items)</em></span>';
+				html += '<i class="material-icons submenu">more_vert</i>';
+		
+				// Three dot menu
+				html += '<div class="dropdown-content">';
+					html += '<div class="edit_title_div"><i class="material-icons edit">edit</i> Edit Title</div>';
+					html += '<div class="toggle_container"><i class="material-icons expand">file_upload</i> Collapse</div>';
+					html += '<div class="sortasc_container"><i class="material-icons">arrow_downward</i> Sort Asc</div>';
+					html += '<div class="sortdesc_container"><i class="material-icons">arrow_upward</i> Sort Desc</div>';
+					html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>';
+					html += '<div class="delete_container"><i class="material-icons delete_group">delete</i> Delete Container</div>';
+				html += '</div>';
 			html += '</h4>';
+		
+			// Rule list
 			html += '<ul class="rulelist"></ul>';
 		html += '</div>';
 
@@ -145,7 +163,7 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	// Delete section button
-	$( document ).on( 'click', 'i.delete_group', function() {
+	$( document ).on( 'click', 'div.delete_container', function() {
 		
 		var this_delete = $( this );
 		
@@ -153,18 +171,18 @@ jQuery( document ).ready( function( $ ) {
 		if( confirm( "Permenantly delete the group?\nAny remaining rules in this group will be moved to the Original Rules group." ) == true ) {
 			
 			// Check if any rules exist in container
-			var check_rules = $( this_delete ).parent().siblings( 'ul' ).children();
+			var check_rules = $( this_delete ).parent().parent().siblings( 'ul' ).children();
 			
 			// If rules are found
 			if( check_rules.length !== 0 ) {
 				
 				// Copy rules and append to original rules container
-				var copy_html = $( this_delete ).parent().siblings( 'ul' ).html();
+				var copy_html = $( this_delete ).parent().parent().siblings( 'ul' ).html();
 				$( 'div#original-rules' ).find( 'ul.rulelist' ).append( copy_html );
 			}
 		
 			// Remove container
-			$( this_delete ).parent().parent().remove();
+			$( this_delete ).parent().parent().parent().remove();
 
 			// Rebuild array
 			rebuildArray();
@@ -172,42 +190,254 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	// Toggle open/close
-	$( document ).on( 'click', 'i.expand', function() {
+	$( document ).on( 'click', 'div.toggle_container', function() {
 		
 		// Switch material icon from open/close
-		if( $( this ).text() == 'file_upload' ) {
-			$( this ).text( 'file_download' );
+		if( $( this ).children( 'i' ).text() == 'file_upload' ) {
+			
+			$( this ).html( '<i class="material-icons expand">file_download</i> Expand' );
 		}
-		else if( $( this ).text() == 'file_download' ) {
-			$( this ).text( 'file_upload' );
+		else if( $( this ).children( 'i' ).text() == 'file_download' ) {
+			
+			$( this ).html( '<i class="material-icons expand">file_upload</i> Collapse' );
 		}
 		
 		// Toggle list
-		$( this ).parent().siblings( 'ul' ).toggle();
+		$( this ).parent().parent().siblings( 'ul' ).toggle();
 		
 		// Rebuild array
 		rebuildArray();
 	});
 	
 	// Copy rule
-	$( document ).on( 'click', 'i.copy_rule', function() {
+	$( document ).on( 'click', 'div.copy_rule', function() {
 		
-		var new_item = $( this ).parent().clone();
-		new_item.find( 'i.copy_rule' ).remove();
-		new_item.append( '<i class="material-icons delete_duplicate" title="Delete Duplicate Rule">delete</i>' );
-		$( this ).parent().after( new_item );
+		var new_item = $( this ).parent().parent().clone();
+		new_item.find( 'div.copy_rule' ).remove();
+		new_item.children( 'div.dropdown-content' ).prepend( '<div class="delete_duplicate"><i class="material-icons">delete</i> Delete Rule</div>' );
+		$( this ).parent().parent().after( new_item );
 		
 		// Rebuild array
 		rebuildArray();
 	});
 	
-	// Delete duplicate rule
-	$( document ).on( 'click', 'i.delete_duplicate', function() {
+	// View rule
+	$( document ).on( 'click', 'div.view_rule', function() {
 		
-		$( this ).parent().remove();
+		window.open( $( this ).attr( 'url' ) );
+		$( this ).parent().hide();
+		return false;
+	});
+	
+	// Delete duplicate rule
+	$( document ).on( 'click', 'div.delete_duplicate', function() {
+		
+		$( this ).parent().parent().remove();
 		
 		// Rebuild array
 		rebuildArray();
+	});
+	
+	
+	// Three dot submenu click function
+	$( document ).on( 'click', 'i.submenu', function() {
+		
+		$( 'div.dropdown-content' ).not( $( this ).siblings( 'div.dropdown-content' ) ).hide();
+		$( this ).siblings( 'div.dropdown-content' ).toggle();
+		$( this ).toggleClass( 'active' );
+		
+		var css = ! $( this ).siblings( 'div.dropdown-content' ).is( ':visible' ) ? '0deg' : '90deg';
+		$( this ).css( 'rotate', css );
+	});
+	
+	// Three dot close if clicking anywhere outside of container
+	window.onclick = function(event) {
+		if( ! event.target.matches( '.submenu' ) ) {
+			
+			$( 'div.dropdown-content' ).hide();
+			$( 'i.submenu' ).css( 'rotate', '0deg' );
+			$( 'i.submenu' ).removeClass( 'active' );
+		}
+	}
+	
+	// Sort ascending
+	$( document ).on( 'click', 'div.sortasc_container', function() {
+		
+		// Get list items
+		var list = $( this ).parent().parent().siblings( 'ul.rulelist' );
+		var items = list.children( 'li' ).get();
+		
+		// Sort
+		items.sort( function( a, b ) {
+			
+			var a_sort = $( a ).children( 'span.rule_name' ).text().toUpperCase();
+			var b_sort = $( b ).children( 'span.rule_name' ).text().toUpperCase();
+			
+			// Remove special characters
+			a_sort = a_sort.replace( /[^\w\s]/gi, '' );
+			b_sort = b_sort.replace( /[^\w\s]/gi, '' );
+			
+			return a_sort.localeCompare( b_sort );
+		});
+		
+		// Append back to list
+		$.each( items, function( idx, itm ) { list.append( itm ); });
+		
+		// Rebuild array
+		rebuildArray();
+	});
+	
+	// Sort descending
+	$( document ).on( 'click', 'div.sortdesc_container', function() {
+		
+		// Get list items
+		var list = $( this ).parent().parent().siblings( 'ul.rulelist' );
+		var items = list.children( 'li' ).get();
+		
+		// Sort
+		items.sort( function( a, b ) {
+			
+			var b_sort = $( b ).children( 'span.rule_name' ).text().toUpperCase();
+			var a_sort = $( a ).children( 'span.rule_name' ).text().toUpperCase();
+			
+			// Remove special characters
+			b_sort = b_sort.replace( /[^\w\s]/gi, '' );
+			a_sort = a_sort.replace( /[^\w\s]/gi, '' );
+			
+			return b_sort.localeCompare( a_sort );
+		});
+		
+		// Append back to list
+		$.each( items, function( idx, itm ) { list.append( itm ); });
+		
+		// Rebuild array
+		rebuildArray();
+	});
+	
+	// Toggle options panel
+	$( document ).on( 'click', 'span#options_panel', function() {
+		
+		$( this ).toggleClass( 'active' );
+		$( 'div#options_section' ).fadeToggle();
+	});
+	
+	// Export options
+	$( 'span#generate_export').click( function() {
+		
+		// Get options from hidden input
+		var options = $( 'input#userArray' ).val();
+		
+		// Place into textarea
+		$( 'textarea#export_textarea' ).val( options );
+	});
+	
+	// Import options
+	$( 'span#generate_import' ).click( function() {
+		
+		// Get import value
+		var import_opts = $( 'textarea#import_textarea' ).val();
+		if( import_opts == '' ) {
+			
+			alert( 'Please paste the contents of an export into the import textarea.' );
+			return false;
+		}
+		
+		// Check if the import is parsable by json
+		var json_check = true;
+		try { var json = $.parseJSON( import_opts ); }
+		catch( err ) { json_check = false; }
+		
+		// If hte data is good
+		if( json_check ) {
+			
+			// Copy and paste into hidden input field
+			$( 'input#userArray' ).val( import_opts );
+		
+			// Click "Done" button
+			$( 'button#btnDone' ).click();
+		}
+		// Else the data is no good
+		else {
+			
+			alert( 'There is a problem with the import data. Please ensure the data has been pasted correctly.' );
+		}
+	});
+	
+	// Copy export to clipboard
+	$( 'span#copy_export' ).click( function() {
+		
+		// Get export value
+		var text = $( 'textarea#export_textarea' ).val();
+		
+		// Hubitat does not always run over https.  In order for copy to clipboard on http, need js helper
+		const textArea = document.createElement( 'textarea' );
+		textArea.value = text;
+		document.body.appendChild( textArea );
+		textArea.focus();
+		textArea.select();
+		
+		// Try to copy to clipboard; alert if unsuccessful
+		try {
+			
+			document.execCommand( 'copy' );
+		
+			// Change tooltip text
+			$( 'span#exportTooltip' ).text( 'Copied Successfully!' );
+		} 
+		catch (err) {
+			
+			alert( 'Unable to copy to clipboard' );
+		}
+		
+		// Remove temp textarea
+		document.body.removeChild( textArea );
+	});
+	
+	// Copy export change text
+	$( 'span#copy_export' ).mouseout( function() {
+		
+		// Get tooltip element and alter text
+		var tooltip = document.getElementById( 'exportTooltip' );
+		tooltip.innerHTML = 'Copy to clipboard';
+	});
+	
+	// Global option hide container counts
+	$( 'input#hide_counts' ).change( function() {
+		
+		if( $( this ).is( ':checked' ) ) {
+			
+			$( 'span.group_rule_count' ).hide();
+		}
+		else {
+			
+			$( 'span.group_rule_count' ).show();
+		}
+		
+		// Rebuild array
+		rebuildArray();
+	});
+	
+	// If resetting rules; click the "Done" button
+	$( 'span#reset_opts' ).click( function() {
+		
+		if( confirm( "Permanently reset all options? This will restore all default app setting, and save the app.\nThe window will return to the main Apps page." ) == true ) {
+			
+			// Get default setting
+			var get_defaults = $( 'input#load_default_opts' ).val();
+			
+			// Set defualt setting
+			$( 'input#userArray' ).val( get_defaults );
+			
+			// Click "Done" button
+			$( 'button#btnDone' ).click();
+		}
+	});
+	
+	// Done function
+	$( document ).on( 'click', 'span#done_submit', function() {
+		
+		// Click "Done" button
+		$( 'button#btnDone' ).click();
 	});
 	
 	// List items click function
@@ -222,7 +452,11 @@ jQuery( document ).ready( function( $ ) {
 function rebuildArray() {
 	
 	// Define base array
-	var rb_array = [];
+	var rb_array = {};
+	
+	// Push global options
+	rb_array.hide_counts = $( 'input#hide_counts' ).is( ':checked' ) ? 'true' : 'false';
+	rb_array.containers = [];
 	
 	// Loop each container
 	$( 'div.rule_container' ).each( function() {
@@ -246,11 +480,17 @@ function rebuildArray() {
 		$( this ).children( 'h4' ).children( 'span.group_rule_count' ).html( '<em>(' + count + ' ' + items + ')</em>' );
 		
 		// Push this container to base array
-		rb_array.push( this_array );
+		rb_array.containers.push( this_array );
 	});
 	
 	// Populate hidden input with new user array
 	$( 'input#userArray' ).val( JSON.stringify( rb_array ) );
+		
+	// Adjust list classes on duplicate items
+	$( 'div.delete_duplicate' ).each( function() {
+
+		$( this ).parent().parent().addClass( 'duplicate' );
+	});
 }
 
 function string_to_slug( str ) {
@@ -277,13 +517,12 @@ function initialize_sort() {
 	// Sort main containers
 	$( "div#rules_container" ).sortable({
 		handle: '.drag_handle',
-		//containment: "parent",
 		opacity: 0.5,
 		axis: 'y',
 		tolerance: 'pointer',
 		change: function(event, ui) {
 			
-			ui.placeholder.css({visibility: 'visible', border : '1px solid yellow', height: '80px'});
+			ui.placeholder.css({visibility: 'visible', border : '1px solid #1a77c9', height: '80px'});
 		},
 		stop: function() {
 			
@@ -298,7 +537,7 @@ function initialize_sort() {
 		opacity: 0.5,
 		change: function(event, ui) {
 			
-			ui.placeholder.css({visibility: 'visible', border : '1px solid yellow', height: '40px'});
+			ui.placeholder.css({visibility: 'visible', border : '1px solid #1a77c9', height: '40px'});
 		},
 		stop: function() {
 			
