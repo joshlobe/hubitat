@@ -12,15 +12,17 @@
  *
  * ver. 1.0.0 2023-09-20 jlobe  - Initial public release
  * ver. 1.0.1 2023-09-22 jlobe  - Fixed sorting and added sorting features. Logic for new rules and deleted rules. Added copy functionality.
- * ver. 1.0.2 2023-09-22 jlobe  - 
+ * ver. 1.1.0 2023-09-22 jlobe  - Huge UI update. Moved styles to local hubitat file system. Updated rules storage array.
  */
 
-def version() { "1.0.2" }
-def js_version() { "1.0.2" }
+def version() { "1.1.0" }
+def js_version() { "1.1.0" }
+def css_version() { "1.1.0" }
 
 import hubitat.helper.RMUtils
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
+import groovyx.net.http.HttpResponseException
 
 definition(
     name: "Rule Machine Manager Alpha",
@@ -60,14 +62,15 @@ preferences {
             html = ""
             hide_counts = ""
             
-            // Include jquery and sortable
+            // Include jquery and sortable and colorpicker
             html += "<script src='https://code.jquery.com/jquery-3.6.0.js'></script>"
             html += "<script src='https://code.jquery.com/ui/1.13.2/jquery-ui.js'></script>"
             html += "<script src='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.js'></script>"
             html += "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.css'>"
             
-            // Add scripts for page
+            // Add scripts/styles for page
             html += "<script src='http://${location.hub.localIP}/local/rule_machine_manager.js'></script>"
+            html += "<link rel='stylesheet' href='http://${location.hub.localIP}/local/rule_machine_manager.css'>"
             
             // Check if there are user rules defined
             settings.each{ if( it.key == 'userArray' ) { userRules = it.value } }
@@ -77,10 +80,10 @@ preferences {
             if( logDebugEnable ) log.debug userRules
             
             /**************************************************
-            // Page notices (new, deleted rules)
+            // Page notices (options conversion, new rules, deleted rules)
             **************************************************/
             
-            // Run checks to determine if rules have changed
+            // If user rules are found on this app
             if( userRules != '' ) {
             
             
@@ -89,28 +92,26 @@ preferences {
                 **************************************************/
                 convert = 'yes'
                 
-                real_rules = userRules
-                test_rules = '[{"name":"Original Rules","slug":"original-rules","title_color":"","title_bold":"","visible":"true","rules":["217","245","246","218","216","220","107"]},{"name":"More Rules","slug":"more-rules","title_color":"","title_bold":"","visible":"true","rules":["247","211","208","212","171","210"]}]'
-                
-                TEST_SWITCH = real_rules
-                
-                convertSlurp = new JsonSlurper().parseText( TEST_SWITCH )
-                
+                // Check if this string is slurpable (if yes, old rules; if no, new rules)
+                convertSlurp = new JsonSlurper().parseText( userRules )
                 try{ checkConvert = ! convertSlurp.contains( 'hide_counts' ) }
                 catch(e) { convert = 'no' }
                 
+                // If old rules found
                 if( convert == 'yes' ) {
                 
-                    html = '<div class="notice_block background-blue">'
-                        html += 'This version of Rule Machine Manager has improved how settings are stored.<br />Settings will need to be modified in the database in order to continue.'
+                    // Alert user
+                    html += '<div class="notice_block preventRebuildArray">'
+                        html += "<i class='material-icons notification'>notifications</i>"
+                        html += 'This version of Rule Machine Manager has improved how settings are stored. Settings will need to be modified in the database in order to continue.'
                     html += '</div>'
-                    
-                    paragraph html
                 
-                    paragraph 'Previous Settings Found...'
-                    paragraph 'Previous Settings:<br />' + TEST_SWITCH
-                    paragraph 'Attempting Conversion...'
+                    // Track changes
+                    html += '<div class="section">Previous Settings Found...</div>'
+                    html += '<div class="section">Previous Settings:<br /><code>' + userRules + '</code></div>'
+                    html += '<div class="section">Attempting Conversion...</div>'
                     
+                    // Build string for insertion into hidden input
                     string = "{"
                     
                         string += '"hide_counts":"false",'
@@ -120,10 +121,12 @@ preferences {
                         convertSlurp.each{
                             string += "{"
                             it.each{
+                                // If this is the rules key, build rules array
                                 if( it.key == 'rules' ) {
                                 
                                     string += '"' + it.key + '":['
                                     it.value.each { string += '"' + it + '",' }
+                                    // Trim ending comma
                                     string = string.substring( 0, string.lastIndexOf( "," ) );
                                     string += "]"
                                 }
@@ -134,26 +137,28 @@ preferences {
                             }
                             string += "},"
                         }
+                        // Trim ending comma
                         string = string.substring( 0, string.lastIndexOf( "," ) );
                         string += "]"
                     string += "}"
                     
+                    // Replace double quotes with html encoded
                     string = string.replaceAll( '"','&quot;' )
                 
-                    paragraph 'Conversion Successful...'
-                    
-                    paragraph 'New Settings:<br />' + string
-                    
-                    paragraph '<strong>IMPORTANT!! Click the "Done" button to update the database.</strong>'
-                    
+                    // Track more changes
+                    html += '<div class="section" style="color:green;">Conversion Successful...</div>'
+                    html += '<div class="section">New Settings:<br /><code>' + string + '</code></div>'
+                    html += '<div class="section error_block"><i class="material-icons notification">error</i><strong>IMPORTANT!!</strong> Click the "Done" button to update the database.</div>'
                     
                     // Create hidden form input and variables
-                    hidden_input = '<input type="hidden" name="userArray.type" value="text">'
-                    hidden_input += '<input type="hidden" name="userArray.multiple" value="false">'
-                    hidden_input += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray" value="' + string + '">'
+                    html += '<input type="hidden" name="userArray.type" value="text">'
+                    html += '<input type="hidden" name="userArray.multiple" value="false">'
+                    html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray" value="' + string + '">'
                     
-                    paragraph hidden_input
+                    // Render page html
+                    paragraph html
                     
+                    // Return here, user must click done to continue
                     return
                 }
                 
@@ -230,13 +235,16 @@ preferences {
                 html += "</div>"
                 html += "<div id='header_right' class='mdl-cell mdl-cell--6-col graybox'>"
                     html += "<p>"
-                        html += "<span id='options_panel' class='button'><i class='material-icons'>settings</i> Options Panel</button>"
+                        html += "<span id='options_panel' class='button'><i class='material-icons'>settings</i> Options Panel</span>"
+                        html += "<span id='done_submit' class='button'><i class='material-icons'>check_circle</i> Done</span>"
                     html += "</p>"
                 html += "</div>"
             html += "</div>"
             
             // Hidden options panel div
             html += "<div id='options_section'>"
+            
+                html += '<h2>Options Panel</h2>'
                 html += "<div id='main_panel'>"
             
                     html += "<div id='export_panel' class='mdl-grid'>"
@@ -337,9 +345,6 @@ preferences {
             
             // If user rules are available
             if( userRules != '' ) {
-                
-                // Define count for iteration
-                count = 0
                     
                 // Create temp array for duplication comparisons
                 tempArray = []
@@ -481,9 +486,6 @@ preferences {
 
                         html += "</ul>"
                     html += "</div>"
-                    
-                    // Increase count by 1
-                    count++
                 }
             }
             // Else use defaults
@@ -546,62 +548,6 @@ preferences {
             html += '<input type="hidden" name="userArray.type" value="text">'
             html += '<input type="hidden" name="userArray.multiple" value="false">'
             html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray">'
-
-            /**************************************************
-            // Page styling
-            **************************************************/
-            
-            // Add styling
-            html += """
-                <style type="text/css">
-                    input#new_group_name { vertical-align: top; }
-                    div#header_panel { padding: 0px; }
-                    span#create_group_button, span#options_panel { padding: 3px 10px 5px 10px; }
-                    span#create_group_button i, span#options_panel i, span#generate_export i, span#generate_import i, span#copy_export i, span#reset_opts i { vertical-align: middle; font-size: 20px; margin-top: -2px; }
-                    div#header_right { text-align: right; }
-                    div#options_section { display: none; }
-                    div#rules_container { border: 1px solid #CCC; padding: 10px; }
-                    div.rule_container { border: 1px solid #CCC; padding: 0px 10px 0px 10px; margin-bottom: 20px; }
-                    span.group_rule_count { margin-left: 10px; }
-                    ul.rulelist { list-style-type: none; padding: 5px; min-height: 40px; border: 1px solid #CCC; }
-                    li.rule { padding: 5px 20px; cursor: pointer; margin-bottom: 2px; }
-                    i.submenu, i.rule_submenu { cursor: pointer; float: right; margin-right: 5px; }
-                    i.submenu { margin-top: -7px; font-size: 35px; }
-                    i.submenu:hover { color: #1a77c9; }
-                    i.submenu.rule { margin-top: -5px; font-size: 30px; }
-                    .button { padding: 3px 10px; border: 1px solid #CCC; border-radius: 4px; background-color: #EEE; cursor: pointer; }
-                    .button:hover { background-color: #DEDEDE; }
-                    input.edit_title_input, span.submit_edit, span.cancel_edit, div.sp-light { margin-right: 10px; }
-                    span.submit_edit { background-color: #f0fcf1; }
-                    span.cancel_edit { background-color: #fcf2f0; }
-                    span.submit_edit:hover { background-color: #d2facd; }
-                    span.cancel_edit:hover { background-color: #faddd7; }
-                    div.sp-preview { width: 20px !important; height: 16px !important; }
-                    div.sp-replacer.sp-light { vertical-align: bottom; border: 1px solid #CCC; border-radius: 4px; padding: 4px 10px; }
-                    div.sp-replacer.sp-light:hover { background-color: #DEDEDE; }
-                    span.title_bold i { vertical-align: bottom; }
-                    span.title_bold.active { background-color: #CCC; }
-                    div#rules_found, div#rules_deleted, div.notice_block { border: 1px solid #8ac6eb; padding: 20px; border-radius: 4px; margin-bottom: 20px; background-color: #f2faff; }
-                    i.notification { margin-right: 10px; vertical-align: bottom; }
-
-                    div.dropdown-content { width: 200px; right: 30px; border: 1px solid #CCC; margin-top: 6px; min-height: 20px; }
-                    div.dropdown-content div { display: block; border-bottom: 1px solid #CCC; padding: 5px 10px; }
-                    div.dropdown-content div:hover { background-color: #f2faff; cursor: pointer; }
-                    div.dropdown-content div i { margin-right: 10px; font-size: 20px; vertical-align: text-bottom; }
-                    div.dropdown-content div.delete_container, div.delete_duplicate { color: red; }
-
-                    div#main_panel { border: 1px solid #CCC; margin-bottom: 20px; }
-                    textarea#export_textarea, textarea#import_textarea { width: 100%; margin-top: 10px; height: 80px; }
-                    div#export_panel div p, div#import_panel div p { margin-bottom: 0px; }
-                    span#generate_export { margin-right: 10px; }
-                    input#hide_counts { height: 16px; width: 16px; vertical-align: top; }
-
-                    .tooltip{ position: relative; display: inline-block; }
-                    .tooltip .tooltiptext { visibility: hidden; width: 140px; background-color: #555; color: #fff; text-align: center; border-radius: 6px; padding: 5px; position: absolute; z-index: 1; bottom: 150%; left: 50%; margin-left: -75px; opacity: 0; transition: opacity 0.3s; }
-                    .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #555 transparent transparent transparent; }
-                    .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
-                </style>
-            """
             
             /**************************************************
             // Page render html
@@ -626,8 +572,29 @@ preferences {
                 grid += "</div>"
                 grid += "<div class='mdl-cell mdl-cell--6-col graybox'>"
                     grid += "<p>"
+            
+                        // Check if js and css files are stored locally
+                        js_installed = '<span class="not_installed">(Not Found in File Manager)</span>'
+                        css_installed = '<span class="not_installed">(Not Found in File Manager)</span>'
+                            
+                        try {
+                            httpGet([ uri: "http://${location.hub.localIP}:8080/local/rule_machine_manager.js", contentType: "text/html" ]) { resp ->
+                                if (resp.success) {  js_installed = '<span class="installed">(Found in File Manager)</span>' }
+                            }
+                        } 
+                        catch (Exception e) { if( logDebugEnable ) log.debug "Call to check js file in file manager failed: ${e.message}" }
+                            
+                        try {
+                            httpGet([ uri: "http://${location.hub.localIP}:8080/local/rule_machine_manager.css", contentType: "text/html" ]) { resp ->
+                                if (resp.success) {  css_installed = '<span class="installed">(Found in File Manager)</span>' }
+                            }
+                        } 
+                        catch (Exception e) { if( logDebugEnable ) log.debug "Call to check css file in file manager failed: ${e.message}" }
+            
+            
                         grid += "<strong>App Version:</strong> ${version()}<br />"
-                        grid += "<strong>JS Version:</strong> ${js_version()}"
+                        grid += "<strong>JS File:</strong> ${js_installed}<br />"
+                        grid += "<strong>CSS File:</strong> ${css_installed}"
                     grid += "</p>"
                 grid += "</div>"
             grid += "</div>"

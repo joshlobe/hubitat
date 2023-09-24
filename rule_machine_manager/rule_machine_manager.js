@@ -1,15 +1,18 @@
 /*
 * Version 1.0.0 - Initial release
 * Version 1.0.1 - Sorting fixes and updates. Logic for new rules and deleted rules. 
-* Version 1.0.2 - 
+* Version 1.1.0 - Huge UI update. Moved styles to local stylesheet. Updated rules storage array.
 */
 jQuery( document ).ready( function( $ ) {
 
 	// Initial rulelist sortable
 	initialize_sort();
 
-	// Set initial input on page load
-	rebuildArray();
+	// Rebuild array on page load (if not updating settings)
+	if( ! $( 'div.preventRebuildArray' ).length ) {
+		
+		rebuildArray();
+	}
 	
 	// Edit title button
 	$( document ).on( 'click', 'div.edit_title_div', function() {
@@ -241,6 +244,10 @@ jQuery( document ).ready( function( $ ) {
 		
 		$( 'div.dropdown-content' ).not( $( this ).siblings( 'div.dropdown-content' ) ).hide();
 		$( this ).siblings( 'div.dropdown-content' ).toggle();
+		$( this ).toggleClass( 'active' );
+		
+		var css = ! $( this ).siblings( 'div.dropdown-content' ).is( ':visible' ) ? '0deg' : '90deg';
+		$( this ).css( 'rotate', css );
 	});
 	
 	// Three dot close if clicking anywhere outside of container
@@ -248,6 +255,8 @@ jQuery( document ).ready( function( $ ) {
 		if( ! event.target.matches( '.submenu' ) ) {
 			
 			$( 'div.dropdown-content' ).hide();
+			$( 'i.submenu' ).css( 'rotate', '0deg' );
+			$( 'i.submenu' ).removeClass( 'active' );
 		}
 	}
 	
@@ -308,7 +317,8 @@ jQuery( document ).ready( function( $ ) {
 	// Toggle options panel
 	$( document ).on( 'click', 'span#options_panel', function() {
 		
-		$( 'div#options_section' ).toggle();
+		$( this ).toggleClass( 'active' );
+		$( 'div#options_section' ).fadeToggle();
 	});
 	
 	// Export options
@@ -423,6 +433,13 @@ jQuery( document ).ready( function( $ ) {
 		}
 	});
 	
+	// Done function
+	$( document ).on( 'click', 'span#done_submit', function() {
+		
+		// Click "Done" button
+		$( 'button#btnDone' ).click();
+	});
+	
 	// List items click function
 	//$( document ).on( 'click', 'ul.rulelist li', function() {
 		
@@ -468,6 +485,12 @@ function rebuildArray() {
 	
 	// Populate hidden input with new user array
 	$( 'input#userArray' ).val( JSON.stringify( rb_array ) );
+		
+	// Adjust list classes on duplicate items
+	$( 'div.delete_duplicate' ).each( function() {
+
+		$( this ).parent().parent().addClass( 'duplicate' );
+	});
 }
 
 function string_to_slug( str ) {
