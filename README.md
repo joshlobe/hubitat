@@ -57,7 +57,7 @@ Rule Machine Manager is an application built for the Hubitat home automation sys
 
 <!-- GETTING STARTED -->
 
-### Installation
+## Installation
 ...
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
