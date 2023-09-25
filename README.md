@@ -1,22 +1,17 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
 
-<!-- PROJECT SHIELDS -->
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 
-<!-- PROJECT LOGO -->
-<br />
 <div align="center">
   <a href="https://github.com/joshlobe/hubitat">
     <img src="images/logo.svg" alt="Logo">
   </a>
 
   <h3 align="center">Rule Machine Manager</h3>
-
   <p align="center">
     <a href="https://github.com/joshlobe/hubitat"><strong>Explore the docs »</strong></a>
     <br />
@@ -45,28 +40,26 @@
   </ol>
 </details>
 
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 
 Rule Machine Manager is an application built for the Hubitat home automation system. It takes the created rules from Rule Machine, and adds them to a visually stimulating interface which allows custom sorting and grouping.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- Screenshots -->
 ## Screenshots
+
 [![Screenshot One][screenshot-one]](images/rmm_1.jpg)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
 [![Groovy][Groovy]][Groovy-url] [![JQuery][JQuery.com]][JQuery-url]
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- GETTING STARTED -->
-
 ## Installation
+
 ...
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- USAGE EXAMPLES -->
 ## Usage
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
@@ -74,7 +67,6 @@ Use this space to show useful examples of how a project can be used. Additional 
 _For more examples, please refer to the [Documentation](https://example.com)_
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- ROADMAP -->
 ## Roadmap
 
 - [ ] Feature 1
@@ -85,7 +77,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- CONTRIBUTING -->
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -100,24 +91,16 @@ Don't forget to give the project a star! Thanks again!
 5. Open a Pull Request
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- CONTACT -->
 ## Contact
 
 Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/hubitat)
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-<!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
 * []()
@@ -125,10 +108,6 @@ Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/
 * []()
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/joshlobe/hubitat.svg?style=for-the-badge
 [contributors-url]: https://github.com/joshlobe/hubitat/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/joshlobe/hubitat.svg?style=for-the-badge
@@ -144,6 +123,5 @@ Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/
 
 [Groovy]: https://img.shields.io/badge/Groovy-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Groovy-url]: https://groovy-lang.org
-
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
