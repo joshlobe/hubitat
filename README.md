@@ -20,7 +20,6 @@
   <p align="center">
     <a href="https://github.com/joshlobe/hubitat"><strong>Explore the docs »</strong></a>
     <br />
-    <br />
     <a href="https://github.com/joshlobe/hubitat">View Demo</a>
     ·
     <a href="https://github.com/joshlobe/hubitat">Report Bug</a>
@@ -28,8 +27,6 @@
     <a href="https://github.com/joshlobe/hubitat">Request Feature</a>
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -47,30 +44,22 @@
   </ol>
 </details>
 
-
-
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
 Rule Machine Manager is an application built for the Hubitat home automation system. It takes the created rules from Rule Machine, and adds them to a visually stimulating interface which allows custom sorting and grouping.
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
 [![Groovy][Groovy]][Groovy-url] [![JQuery][JQuery.com]][JQuery-url]
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
 
 ### Installation
-
 ...
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -78,10 +67,7 @@ Rule Machine Manager is an application built for the Hubitat home automation sys
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
 _For more examples, please refer to the [Documentation](https://example.com)_
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -92,10 +78,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
     - [ ] Nested Feature
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- CONTRIBUTING -->
 ## Contributing
@@ -110,7 +93,6 @@ Don't forget to give the project a star! Thanks again!
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -119,7 +101,6 @@ Don't forget to give the project a star! Thanks again!
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -128,9 +109,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 ## Contact
 
 Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/hubitat)
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- ACKNOWLEDGMENTS -->
@@ -139,7 +118,6 @@ Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/
 * []()
 * []()
 * []()
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
