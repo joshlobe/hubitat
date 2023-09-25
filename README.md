@@ -29,8 +29,6 @@
 <h3 align="center">Rule Machine Manager</h3>
 
   <p align="center">
-    Rule Machine Manager
-    <br />
     <a href="https://github.com/joshlobe/hubitat"><strong>Explore the docs »</strong></a>
     <br />
     <br />
@@ -215,7 +213,7 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 [product-screenshot]: images/screenshot.png
 
-[Groovy.js]: https://img.shields.io/badge/Groovy-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
+[Groovy]: https://img.shields.io/badge/Groovy-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Groovy-url]: https://groovy-lang.org
 
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
