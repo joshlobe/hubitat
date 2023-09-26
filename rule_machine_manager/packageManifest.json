@@ -2,10 +2,13 @@
 	"packageName": "Rule Machine Manager",
 	"minimumHEVersion": "2.3.5.152",
 	"author": "Josh Lobe",
-	"version": "1.1.1",
-	"dateReleased": "2023-09-24",
+	"documentationLink": "https://github.com/joshlobe/hubitat",
+	"communityLink": "https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface",
+	"version": "1.1.2",
+	"dateReleased": "2023-09-26",
 	"licenseFile": "",
-	"releaseNotes": "1.1.1 - Fix app name. 1.1.0 - Improved UI/UX. New Options Panel. New options storage (convert on first page load).",
+	"tags": "Rule Machine",
+	"releaseNotes": "1.1.2 - Fix script loading order. View full changelog here: https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt)",
 	"apps" : [
 		{
 			"id" : "6wjv6vft-geb7-n2ex-rq4c-vvd32wqw4379",
