@@ -57,11 +57,11 @@ Rule Machine Manager is an application built for the Hubitat home automation sys
 
 ## Installation
 
-*Available Via Hubitat Package Manager (Recommended)*
+###Available Via Hubitat Package Manager (Recommended)
 This app is available via Hubitat Package Manager.<br />
 Simply search for "Rule Machine Manager" and install the package.
 
-*Local Installation*
+###Local Installation
 1. Visit Apps Code -> New App ->, and paste the .groovy code from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.groovy) into the window and save.
 2. Download the required javascipt file from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.js) and save it into your hub file manager. The filename should be saved as "rule_machine_manager.js".
 3. Download the required stylesheet file from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.css) and save it into your hub file manager. The filename should be saved as "rule_machine_manager.css".
