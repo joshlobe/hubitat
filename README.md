@@ -17,9 +17,9 @@
     <br />
     <a href="https://github.com/joshlobe/hubitat">View Demo</a>
     ·
-    <a href="https://github.com/joshlobe/hubitat">Report Bug</a>
+    <a href="https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface/">Report Bug</a>
     ·
-    <a href="https://github.com/joshlobe/hubitat">Request Feature</a>
+    <a href="https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface/">Request Feature</a>
   </p>
 </div>
 
@@ -57,23 +57,30 @@ Rule Machine Manager is an application built for the Hubitat home automation sys
 
 ## Installation
 
+*Available Via Hubitat Package Manager (Recommended)*
+This app is available via Hubitat Package Manager.<br />
+Simply search for "Rule Machine Manager" and install the package.
+
+*Local Installation*
+1. Visit Apps Code -> New App ->, and paste the .groovy code from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.groovy) into the window and save.
+2. Download the required javascipt file from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.js) and save it into your hub file manager. The filename should be saved as "rule_machine_manager.js".
+3. Download the required stylesheet file from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.css) and save it into your hub file manager. The filename should be saved as "rule_machine_manager.css".
+4. Go to Apps -> Add User App -> and click "Rule Machine Manager".
+
 ...
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
-_For more examples, please refer to the [Documentation](https://example.com)_
+This application takes the rules created from Rule Machine; and lays them out into an interface which can be used to custom sort, arrage and group the rules.  New groups can be created and modified.  Rules can be dragged/dropped into the groups.  All settings are stored and retrieved the next time the page is loaded.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ] Bring in rules from other machines (room lighting, button controllers, etc.).
+- [ ] Ability to add groups under groups.
 
+See the [Hubitat Community forum for Rule Machine Manager](https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface/) for the full discussion regarding this application.<br />
 See the [open issues](https://github.com/joshlobe/hubitat/issues) for a full list of proposed features (and known issues).
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -103,9 +110,6 @@ Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/
 
 ## Acknowledgments
 
-* []()
-* []()
-* []()
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 [contributors-shield]: https://img.shields.io/github/contributors/joshlobe/hubitat.svg?style=for-the-badge
