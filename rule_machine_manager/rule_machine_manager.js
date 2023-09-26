@@ -1,8 +1,7 @@
 /*
-* Version 1.0.0 - Initial release
-* Version 1.0.1 - Sorting fixes and updates. Logic for new rules and deleted rules. 
-* Version 1.1.0 - Huge UI update. Moved styles to local stylesheet. Updated rules storage array.
+* Version 1.1.2
 */
+
 jQuery( document ).ready( function( $ ) {
 
 	// Initial rulelist sortable

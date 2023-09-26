@@ -1,0 +1,16 @@
+Version 1.1.2
+* Moved script/style loading to bottom of html, and added defer attribute.
+* Created github readme and changelog files.
+
+Version 1.1.1
+* Fix to url in external stylesheet.
+
+Version 1.1.0
+* Fixes to sorting.
+* Added title editing.
+
+Version 1.0.1
+* Updated UI.
+
+Version 1.0.0 
+* Initial release.
