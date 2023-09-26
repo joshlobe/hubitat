@@ -49,6 +49,8 @@ Rule Machine Manager is an application built for the Hubitat home automation sys
 ## Screenshots
 
 [![Screenshot One][screenshot-one]](images/rmm_1.jpg)
+[![Screenshot Two][screenshot-two]](images/rmm_2.jpg)
+[![Screenshot Three][screenshot-three]](images/rmm_3.jpg)
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
@@ -130,6 +132,8 @@ Click [HERE](rule_machine_manager/changelog.txt) to view the changelog.
 [license-url]: https://github.com/joshlobe/hubitat/blob/master/LICENSE.txt
 
 [screenshot-one]: images/rmm_1.jpg
+[screenshot-two]: images/rmm_2.jpg
+[screenshot-three]: images/rmm_3.jpg
 
 [Groovy]: https://img.shields.io/badge/Groovy-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Groovy-url]: https://groovy-lang.org
