@@ -9,15 +9,11 @@
  *	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
  *	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *	for the specific language governing permissions and limitations under the License.
- *
- * ver. 1.0.0 2023-09-20 jlobe  - Initial public release
- * ver. 1.0.1 2023-09-22 jlobe  - Fixed sorting and added sorting features. Logic for new rules and deleted rules. Added copy functionality.
- * ver. 1.1.0 2023-09-22 jlobe  - Huge UI update. Moved styles to local hubitat file system. Updated rules storage array.
  */
 
-def version() { "1.1.1" }
-def js_version() { "1.1.1" }
-def css_version() { "1.1.1" }
+def version() { "1.1.2" }
+def js_version() { "1.1.2" }
+def css_version() { "1.1.2" }
 
 import hubitat.helper.RMUtils
 import groovy.json.JsonSlurper
@@ -61,16 +57,6 @@ preferences {
             resetRules = getRuleListArray()
             html = ""
             hide_counts = ""
-            
-            // Include jquery and sortable and colorpicker
-            html += "<script src='https://code.jquery.com/jquery-3.6.0.js'></script>"
-            html += "<script src='https://code.jquery.com/ui/1.13.2/jquery-ui.js'></script>"
-            html += "<script src='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.js'></script>"
-            html += "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.css'>"
-            
-            // Add scripts/styles for page
-            html += "<script src='http://${location.hub.localIP}/local/rule_machine_manager.js'></script>"
-            html += "<link rel='stylesheet' href='http://${location.hub.localIP}/local/rule_machine_manager.css'>"
             
             // Check if there are user rules defined
             settings.each{ if( it.key == 'userArray' ) { userRules = it.value } }
@@ -548,6 +534,16 @@ preferences {
             html += '<input type="hidden" name="userArray.type" value="text">'
             html += '<input type="hidden" name="userArray.multiple" value="false">'
             html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray">'
+            
+            // Include jquery and sortable and colorpicker
+            html += "<script src='https://code.jquery.com/jquery-3.6.0.js' defer></script>"
+            html += "<script src='https://code.jquery.com/ui/1.13.2/jquery-ui.js' defer></script>"
+            html += "<script src='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.js' defer></script>"
+            html += "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.css'>"
+            
+            // Add scripts/styles for page
+			html += "<script src='http://${location.hub.localIP}/local/rule_machine_manager.js' defer></script>"
+            html += "<link rel='stylesheet' href='http://${location.hub.localIP}/local/rule_machine_manager.css'>"
             
             /**************************************************
             // Page render html

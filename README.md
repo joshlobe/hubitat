@@ -37,6 +37,7 @@
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#changelog">Changelog</a></li>
   </ol>
 </details>
 
@@ -110,6 +111,11 @@ Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/
 
 ## Acknowledgments
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Changelog
+
+View the changelog by clicking "changelog.txt" from the files above, or simply click [HERE](changelog.txt).
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 [contributors-shield]: https://img.shields.io/github/contributors/joshlobe/hubitat.svg?style=for-the-badge
