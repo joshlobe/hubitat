@@ -115,7 +115,7 @@ Project Link: [https://github.com/joshlobe/hubitat](https://github.com/joshlobe/
 
 ## Changelog
 
-View the changelog by clicking "changelog.txt" from the files above, or simply click [HERE](changelog.txt).
+Click [HERE](rule_machine_manager/changelog.txt) to view the changelog.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 [contributors-shield]: https://img.shields.io/github/contributors/joshlobe/hubitat.svg?style=for-the-badge
