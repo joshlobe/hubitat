@@ -66,8 +66,6 @@ Simply search for "Rule Machine Manager" and install the package.
 2. Download the required javascipt file from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.js) and save it into your hub file manager. The filename should be saved as "rule_machine_manager.js".
 3. Download the required stylesheet file from [HERE](https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.css) and save it into your hub file manager. The filename should be saved as "rule_machine_manager.css".
 4. Go to Apps -> Add User App -> and click "Rule Machine Manager".
-
-...
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Usage
@@ -81,7 +79,7 @@ This application takes the rules created from Rule Machine; and lays them out in
 - [ ] Ability to add groups under groups.
 
 See the [Hubitat Community forum for Rule Machine Manager](https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface/) for the full discussion regarding this application.<br />
-See the [open issues](https://github.com/joshlobe/hubitat/issues) for a full list of proposed features (and known issues).
+Also check [open issues](https://github.com/joshlobe/hubitat/issues) for a full list of proposed features (and known issues), tracked by the developer.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contributing
