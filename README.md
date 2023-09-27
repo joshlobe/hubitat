@@ -48,8 +48,14 @@ Rule Machine Manager is an application built for the Hubitat home automation sys
 
 ## Screenshots
 
+**Main Page**
+Sortable containers; sortable rules; create new containers; move rules anywhere.
 [![Screenshot One][screenshot-one]](images/rmm_1.jpg)
+**Options Panel**
+Export and import; set global options; reset options to default.
 [![Screenshot Two][screenshot-two]](images/rmm_2.jpg)
+**Feature Rich Menus**
+Edit container titles; expand/collapse containers; sort rules; move containers.
 [![Screenshot Three][screenshot-three]](images/rmm_3.jpg)
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -9,11 +9,14 @@
  *	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
  *	on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *	for the specific language governing permissions and limitations under the License.
+ *
+ * View the full changelog here:
+ * https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt
  */
 
-def version() { "1.1.2" }
-def js_version() { "1.1.2" }
-def css_version() { "1.1.2" }
+def version() { "1.1.3" }
+def js_version() { "1.1.3" }
+def css_version() { "1.1.3" }
 
 import hubitat.helper.RMUtils
 import groovy.json.JsonSlurper
@@ -213,13 +216,13 @@ preferences {
             
             // Create new rule group input; options panel button
             html += "<div id='header_panel' class='mdl-grid'>"
-                html += "<div id='header_left' class='mdl-cell mdl-cell--6-col graybox'>"
+                html += "<div id='header_left' class='mdl-cell mdl-cell--8-col graybox'>"
                     html += "<p>"
-                        html += "Create a new Rule Group Container: <input type='text' id='new_group_name' placeholder='Container Title' /> "
+                        html += "<span id='new_group_info'>Create a new Rule Group Container:</span> <input type='text' id='new_group_name' placeholder='Container Title' /> "
                         html += "<span id='create_group_button' class='button'><i class='material-icons'>add_circle</i> Create Container</span>"
                     html += "</p>"
                 html += "</div>"
-                html += "<div id='header_right' class='mdl-cell mdl-cell--6-col graybox'>"
+                html += "<div id='header_right' class='mdl-cell mdl-cell--4-col graybox'>"
                     html += "<p>"
                         html += "<span id='options_panel' class='button'><i class='material-icons'>settings</i> Options Panel</span>"
                         html += "<span id='done_submit' class='button'><i class='material-icons'>check_circle</i> Done</span>"
@@ -364,23 +367,23 @@ preferences {
 
                             html += '<div class="dropdown-content">'
                     
-                                // Add edit icon, but not to original rules container
-                                if( it.slug != 'original-rules' ) {
-                                
-                                    html += '<div class="edit_title_div"><i class="material-icons edit">edit</i> Edit Title</div>'
-                                }
+                                // Add drag icon
+                                html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>'
                     
                                 // Add expand/collapse icon
                                 toggle_icon = it.visible == true ? 'file_upload' : 'file_download'
                                 toggle_text = it.visible == true ? 'Collapse' : 'Expand'
                                 html += "<div class='toggle_container'><i class='material-icons expand'>${toggle_icon}</i> ${toggle_text}</div>"
                     
+                                // Add edit icon, but not to original rules container
+                                if( it.slug != 'original-rules' ) {
+                                
+                                    html += '<div class="edit_title_div"><i class="material-icons edit">edit</i> Edit Title</div>'
+                                }
+                    
                                 // Add sort icons
                                 html += '<div class="sortasc_container"><i class="material-icons">arrow_downward</i> Sort Asc</div>'
                                 html += '<div class="sortdesc_container"><i class="material-icons">arrow_upward</i> Sort Desc</div>'
-                    
-                                // Add drag icon
-                                html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>'
                     
                                 // Add delete icon, but not to original rules container
                                 if( it.slug != 'original-rules' ) {
@@ -488,10 +491,10 @@ preferences {
                 
                         html += '<i class="material-icons submenu">more_vert</i>'
                         html += '<div class="dropdown-content">'
+                            html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>'
                             html += '<div class="toggle_container"><i class="material-icons expand">file_upload</i> Collapse</div>'
                             html += '<div class="sortasc_container"><i class="material-icons">arrow_downward</i> Sort Asc</div>'
                             html += '<div class="sortdesc_container"><i class="material-icons">arrow_upward</i> Sort Desc</div>'
-                            html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>'
                         html += '</div>'
                     html += "</h4>"
                 
@@ -536,10 +539,8 @@ preferences {
             html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray">'
             
             // Include jquery and sortable and colorpicker
-            html += "<script src='https://code.jquery.com/jquery-3.6.0.js' defer></script>"
-            html += "<script src='https://code.jquery.com/ui/1.13.2/jquery-ui.js' defer></script>"
-            html += "<script src='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.js' defer></script>"
-            html += "<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/spectrum-colorpicker@1.8.1/spectrum.min.css'>"
+            html += "<script defer src='https://code.jquery.com/jquery-3.6.0.js'></script>"
+            html += "<script defer src='https://code.jquery.com/ui/1.13.2/jquery-ui.js'></script>"
             
             // Add scripts/styles for page
 			html += "<script src='http://${location.hub.localIP}/local/rule_machine_manager.js' defer></script>"
