@@ -14,11 +14,12 @@
  * https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt
  */
 
-def version() { "1.1.3" }
-def js_version() { "1.1.3" }
-def css_version() { "1.1.3" }
+def version() { "1.1.4" }
+def js_version() { "1.1.4" }
+def css_version() { "1.1.4" }
 
 import hubitat.helper.RMUtils
+import hubitat.helper.ColorUtils
 import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import groovyx.net.http.HttpResponseException
@@ -74,82 +75,6 @@ preferences {
             
             // If user rules are found on this app
             if( userRules != '' ) {
-            
-            
-                /**************************************************
-                // Options conversion
-                **************************************************/
-                convert = 'yes'
-                
-                // Check if this string is slurpable (if yes, old rules; if no, new rules)
-                convertSlurp = new JsonSlurper().parseText( userRules )
-                try{ checkConvert = ! convertSlurp.contains( 'hide_counts' ) }
-                catch(e) { convert = 'no' }
-                
-                // If old rules found
-                if( convert == 'yes' ) {
-                
-                    // Alert user
-                    html += '<div class="notice_block preventRebuildArray">'
-                        html += "<i class='material-icons notification'>notifications</i>"
-                        html += 'This version of Rule Machine Manager has improved how settings are stored. Settings will need to be modified in the database in order to continue.'
-                    html += '</div>'
-                
-                    // Track changes
-                    html += '<div class="section">Previous Settings Found...</div>'
-                    html += '<div class="section">Previous Settings:<br /><code>' + userRules + '</code></div>'
-                    html += '<div class="section">Attempting Conversion...</div>'
-                    
-                    // Build string for insertion into hidden input
-                    string = "{"
-                    
-                        string += '"hide_counts":"false",'
-                        string += '"containers":'
-                
-                        string += "["
-                        convertSlurp.each{
-                            string += "{"
-                            it.each{
-                                // If this is the rules key, build rules array
-                                if( it.key == 'rules' ) {
-                                
-                                    string += '"' + it.key + '":['
-                                    it.value.each { string += '"' + it + '",' }
-                                    // Trim ending comma
-                                    string = string.substring( 0, string.lastIndexOf( "," ) );
-                                    string += "]"
-                                }
-                                else {
-                                
-                                    string += '"' + it.key + '":"' + it.value + '",'
-                                }
-                            }
-                            string += "},"
-                        }
-                        // Trim ending comma
-                        string = string.substring( 0, string.lastIndexOf( "," ) );
-                        string += "]"
-                    string += "}"
-                    
-                    // Replace double quotes with html encoded
-                    string = string.replaceAll( '"','&quot;' )
-                
-                    // Track more changes
-                    html += '<div class="section" style="color:green;">Conversion Successful...</div>'
-                    html += '<div class="section">New Settings:<br /><code>' + string + '</code></div>'
-                    html += '<div class="section error_block"><i class="material-icons notification">error</i><strong>IMPORTANT!!</strong> Click the "Done" button to update the database.</div>'
-                    
-                    // Create hidden form input and variables
-                    html += '<input type="hidden" name="userArray.type" value="text">'
-                    html += '<input type="hidden" name="userArray.multiple" value="false">'
-                    html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray" value="' + string + '">'
-                    
-                    // Render page html
-                    paragraph html
-                    
-                    // Return here, user must click done to continue
-                    return
-                }
                 
                 /**************************************************
                 // New Rules
@@ -302,7 +227,7 @@ preferences {
                     resetRules.each{ default_rules += '"' + it.key + '"' + "," }
                     default_rules = default_rules.substring( 0, default_rules.lastIndexOf( "," ) );
                     default_rules += "]"
-                    main_defaults = '{"hide_counts":"false","containers":[{"name":"Original Rules","slug":"original-rules","title_color":"","title_bold":"","visible":true,"rules":' + default_rules + '}]}'
+                    main_defaults = '{"hide_counts":"false","containers":[{"name":"Original Rules","slug":"original-rules","title_color":"","title_opacity":"","title_bold":"","container_color":"","container_opacity":"","visible":true,"rules":' + default_rules + '}]}'
             
                     html += "<div id='reset_rules' class='mdl-grid'>"
                         html += "<div class='mdl-cell mdl-cell--6-col graybox'>"
@@ -344,18 +269,29 @@ preferences {
                 // Loop each rule
                 userRules.containers.each{
                     
-                    html += "<div id='${it.slug}' class='rule_container'>"
-                
-                        html += "<input type='hidden' class='title_color' value='${it.title_color}' />"
-                        html += "<input type='hidden' class='title_bold' value='${it.title_bold}' />"
+                    // These are applied to the main container, and must be defined first
+                    container_color = ( it.container_color && it.container_color != '' && it.container_color != 'null' ) ? it.container_color : '#FFFFFF'
+                    container_opacity = ( it.container_opacity && it.container_opacity != '' && it.container_opacity != 'null' ) ? it.container_opacity : '1'
                     
-                        // Check vars
-                        title_color = ( it.title_color != '' && it.title_color != null ) ? it.title_color : '#000'
-                        title_bold = ( it.title_bold == 'true' ) ? 'bold' : 'normal'
+                    rgb = hubitat.helper.ColorUtils.hexToRGB( container_color )
+                    rgba_string = "rgba(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ", " + container_opacity + ")"
+                    
+                    html += "<div id='${it.slug}' class='rule_container' style='background-color:${rgba_string};'>"
+                    
+                        // These are applied after the container; and are tied to javascript functions in this hierarchy
+                        title_color = ( it.title_color && it.title_color != '' && it.title_color != 'null' ) ? it.title_color : '#000'
+                        title_opacity = ( it.title_opacity && it.title_opacity != '' && it.title_opacity != 'null' ) ? it.title_opacity : '1'
+                        title_bold = ( it.title_bold && it.title_bold == 'true' ) ? 'bold' : 'normal'
+                
+                        html += "<input type='hidden' class='title_color' value='${title_color}' />"
+                        html += "<input type='hidden' class='title_opacity' value='${title_opacity}' />"
+                        html += "<input type='hidden' class='title_bold' value='${title_bold}' />"
+                        html += "<input type='hidden' class='container_color' value='${container_color}' />"
+                        html += "<input type='hidden' class='container_opacity' value='${container_opacity}' />"
 
                         // Create title
                         html += "<h4>"
-                            html += "<span class='group_name' style='color:${title_color};font-weight:${title_bold};'>${it.name}</span>"
+                            html += "<span class='group_name' style='color:${title_color};font-weight:${title_bold};opacity:${title_opacity};'>${it.name}</span>"
                             html += "<span class='group_name_edit'></span>"
                     
                             // Hide rule counts if user selected
@@ -374,6 +310,9 @@ preferences {
                                 toggle_icon = it.visible == true ? 'file_upload' : 'file_download'
                                 toggle_text = it.visible == true ? 'Collapse' : 'Expand'
                                 html += "<div class='toggle_container'><i class='material-icons expand'>${toggle_icon}</i> ${toggle_text}</div>"
+                    
+                                // Add edit container
+                                html += '<div class="edit_container_div"><i class="material-icons edit_container">edit</i> Edit Container</div>'
                     
                                 // Add edit icon, but not to original rules container
                                 if( it.slug != 'original-rules' ) {
@@ -483,7 +422,10 @@ preferences {
                 html += "<div id='original_rules' class='rule_container'>"
                 
                     html += '<input type="hidden" class="title_color" />'
+                    html += '<input type="hidden" class="title_opacity" />'
                     html += "<input type='hidden' class='title_bold' />"
+                    html += '<input type="hidden" class="container_color" />'
+                    html += '<input type="hidden" class="container_opacity" />'
             
                     html += "<h4>"
                         html += "<span class='group_name'>Original Rules</span>"
@@ -493,6 +435,7 @@ preferences {
                         html += '<div class="dropdown-content">'
                             html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>'
                             html += '<div class="toggle_container"><i class="material-icons expand">file_upload</i> Collapse</div>'
+                            html += '<div class="edit_container_div"><i class="material-icons edit_container">edit</i> Edit Container</div>'
                             html += '<div class="sortasc_container"><i class="material-icons">arrow_downward</i> Sort Asc</div>'
                             html += '<div class="sortdesc_container"><i class="material-icons">arrow_upward</i> Sort Desc</div>'
                         html += '</div>'
@@ -543,7 +486,7 @@ preferences {
             html += "<script defer src='https://code.jquery.com/ui/1.13.2/jquery-ui.js'></script>"
             
             // Add scripts/styles for page
-			html += "<script src='http://${location.hub.localIP}/local/rule_machine_manager.js' defer></script>"
+			html += "<script defer src='http://${location.hub.localIP}/local/rule_machine_manager.js'></script>"
             html += "<link rel='stylesheet' href='http://${location.hub.localIP}/local/rule_machine_manager.css'>"
             
             /**************************************************
