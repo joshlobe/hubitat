@@ -1,5 +1,5 @@
 /*
-* Version 1.1.3
+* Version 1.1.4
 */
 
 jQuery( document ).ready( function( $ ) {
@@ -37,15 +37,22 @@ jQuery( document ).ready( function( $ ) {
 		var title_color = $( this ).parent().parent().siblings( 'input.title_color' ).val();
 		var set_color = title_color === '' ? '#000' : title_color;
 		
+		// Check for current title opacity
+		var title_opacity = $( this ).parent().parent().siblings( 'input.title_opacity' ).val();
+		var set_opacity = title_opacity === '' ? '1' : title_opacity;
+		
 		// Check for current title bold
 		var title_bold = $( this ).parent().parent().siblings( 'input.title_bold' ).val();
 		if( title_bold == 'true' ) {
 			$( this ).parent().siblings( 'span.group_name_edit' ).children( 'span.title_bold' ).addClass( 'active' );
 		}
+		
+		// Build rgba from color and opacity
+		var rgba = hexToRGB( set_color, set_opacity );
 	
 		// Set color picker
 		$(".color_picker").spectrum({
-			color: set_color,
+			color: rgba,
 			showInitial: true,
 			showPaletteOnly: true,
 			togglePaletteOnly: true,
@@ -53,6 +60,8 @@ jQuery( document ).ready( function( $ ) {
 			togglePaletteLessText: 'Show Less',
 			chooseText: 'Choose',
 			cancelText: 'Cancel',
+			hideAfterPaletteSelect: true,
+			showAlpha: true,
 			palette: [
 				["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
 				["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
@@ -67,6 +76,63 @@ jQuery( document ).ready( function( $ ) {
 				
 				// Populate hidden input field for later consumption
 				$( this ).parent().parent().siblings( 'input.title_color' ).val( color.toHexString() );
+				$( this ).parent().parent().siblings( 'input.title_opacity' ).val( color.getAlpha() );
+			}
+		});
+	});
+	
+	// Edit container button
+	$( document ).on( 'click', 'div.edit_container_div', function() {
+		
+		// If we are already editing, don't edit again
+		var check_nodes = $( this ).parent().parent().siblings( 'div.container_options' ).children( 'input.cont_bg_color_picker' );
+		if( $( check_nodes ).length > 0 ) { return false; }
+		
+		// Define container html
+		var html = '';
+		html += 'Container Background Color: <input type="text" class="cont_bg_color_picker" />';
+		html += '<span class="button submit_edit_container">Submit</span>';
+		html += '<span class="button cancel_edit_container">Cancel</span>';
+		
+		// Build new container options panel
+		var new_div = $( '<div class="container_options">' );
+		$( new_div ).html( html );
+		$( new_div ).prependTo( $( this ).parent().parent().parent( 'div.rule_container' ) ).fadeIn();
+		
+		// Get container color option
+		var container_color = $( this ).parent().parent().siblings( 'input.container_color' ).val();
+		var container_opacity = $( this ).parent().parent().siblings( 'input.container_opacity' ).val();
+		
+		// Build rgba from color and opacity
+		var rgba = hexToRGB( container_color, container_opacity );
+	
+		// Set color picker
+		$(".cont_bg_color_picker").spectrum({
+			color: rgba,
+			showInitial: true,
+			showPaletteOnly: true,
+			togglePaletteOnly: true,
+			togglePaletteMoreText: 'Show More',
+			togglePaletteLessText: 'Show Less',
+			chooseText: 'Choose',
+			cancelText: 'Cancel',
+			hideAfterPaletteSelect: true,
+			showAlpha: true,
+			palette: [
+				["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+				["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+				["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+				["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+				["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+				["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+				["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+				["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
+			],
+			change: function( color ) {
+				
+				// Populate hidden input field for later consumption
+				$( this ).parent().siblings( 'input.container_color' ).val( color.toHexString() );
+				$( this ).parent().siblings( 'input.container_opacity' ).val( color.getAlpha() );
 			}
 		});
 	});
@@ -98,6 +164,16 @@ jQuery( document ).ready( function( $ ) {
 		rebuildArray();
 	});
 	
+	// Cancel edit container button
+	$( document ).on( 'click', 'span.cancel_edit_container', function() {
+		
+		// Remove edit container div
+		$( this ).parent().fadeOut( "normal", function() { $( this ).remove(); });
+		
+		// Rebuild user array
+		rebuildArray();
+	});
+	
 	// Submit edit title button
 	$( document ).on( 'click', 'span.submit_edit', function() {
 		
@@ -107,12 +183,15 @@ jQuery( document ).ready( function( $ ) {
 		// Get title color
 		var title_color = $( this ).parent().parent().siblings( 'input.title_color' ).val();
 		
+		// Get title opacity
+		var title_opacity = $( this ).parent().parent().siblings( 'input.title_opacity' ).val();
+		
 		// Get title bold
 		var title_bold = $( this ).parent().parent().siblings( 'input.title_bold' ).val();
 		var font_weight = title_bold == 'true' ? 'bold' : 'normal';
 		
-		// Replace title with new value
-		$( this ).parent().siblings( 'span.group_name' ).html( new_value ).css({ 'color': title_color, 'font-weight': font_weight });
+		// Replace title with new values
+		$( this ).parent().siblings( 'span.group_name' ).html( new_value ).css({ 'color': title_color, 'font-weight': font_weight, 'opacity': title_opacity });
 		
 		// Clear edit area
 		$( this ).parent().html( '' );
@@ -120,8 +199,30 @@ jQuery( document ).ready( function( $ ) {
 		// Rebuild array
 		rebuildArray();
 	});
+	
+	// Submit edit container
+	$( document ).on( 'click', 'span.submit_edit_container', function() {
+		
+		// Get container color
+		var container_color = $( this ).parent().siblings( 'input.container_color' ).val();
+		
+		// Get container opacity
+		var container_opacity = $( this ).parent().siblings( 'input.container_opacity' ).val();
+		
+		// Combine rgba
+		var rgba = hexToRGB( container_color, container_opacity );
+		
+		// Replace container with new values
+		$( this ).parent().parent().css({ 'background-color': rgba });
+		
+		// Remove edit container div
+		$( this ).parent().fadeOut( "normal", function() { $( this ).remove(); });
+		
+		// Rebuild array
+		rebuildArray();
+	});
 
-	// Create section button
+	// Create container button
 	$( "span#create_group_button" ).click( function() {
 
 		// Get name from input
@@ -142,8 +243,11 @@ jQuery( document ).ready( function( $ ) {
 			var check_counts = $( 'input#hide_counts' ).is( ':checked' ) ? 'display: none;' : '';
 		
 			// Hidden divs
-            html += '<input type="hidden" class="title_color" />'
-            html += '<input type="hidden" class="title_bold" />'
+            html += '<input type="hidden" class="title_color" />';
+            html += '<input type="hidden" class="title_opacity" />';
+            html += '<input type="hidden" class="title_bold" />';
+            html += '<input type="hidden" class="container_color" value="#FFFFFF" />';
+            html += '<input type="hidden" class="container_opacity" value="1" />';
 			html += '<h4>';
 				html += '<span class="group_name">' + name + '</span>';
                 html += '<span class="group_name_edit"></em></span>';
@@ -154,6 +258,7 @@ jQuery( document ).ready( function( $ ) {
 				html += '<div class="dropdown-content">';
 					html += '<div class="drag_container drag_handle"><i class="material-icons" title="Drag/Sort">open_with</i> Move</div>';
 					html += '<div class="toggle_container"><i class="material-icons expand">file_upload</i> Collapse</div>';
+					html += '<div class="edit_container_div"><i class="material-icons edit_container">edit</i> Edit Container</div>';
 					html += '<div class="edit_title_div"><i class="material-icons edit">edit</i> Edit Title</div>';
 					html += '<div class="sortasc_container"><i class="material-icons">arrow_downward</i> Sort Asc</div>';
 					html += '<div class="sortdesc_container"><i class="material-icons">arrow_upward</i> Sort Desc</div>';
@@ -455,13 +560,6 @@ jQuery( document ).ready( function( $ ) {
 		// Click "Done" button
 		$( 'button#btnDone' ).click();
 	});
-	
-	// List items click function
-	//$( document ).on( 'click', 'ul.rulelist li', function() {
-		
-		// Toggle selected class
-		//$( this ).toggleClass( 'selected' );
-	//});
 
 	// Build new user array
 	function rebuildArray() {
@@ -482,7 +580,10 @@ jQuery( document ).ready( function( $ ) {
 			this_array.name = title;
 			this_array.slug = string_to_slug( title );
 			this_array.title_color = $( this ).children( 'input.title_color' ).val();
+			this_array.title_opacity = $( this ).children( 'input.title_opacity' ).val();
 			this_array.title_bold = $( this ).children( 'input.title_bold' ).val();
+			this_array.container_color = $( this ).children( 'input.container_color' ).val();
+			this_array.container_opacity = $( this ).children( 'input.container_opacity' ).val();
 			this_array.visible = $( this ).children( 'ul' ).is( ':visible' );
 
 			// Populate all rules
@@ -508,6 +609,7 @@ jQuery( document ).ready( function( $ ) {
 		});
 	}
 
+	// Build slugs from friendly names
 	function string_to_slug( str ) {
 
 		// Trim string and cast to lowercase
@@ -527,6 +629,7 @@ jQuery( document ).ready( function( $ ) {
 		return str;
 	}
 
+	// Sort containers
 	function initialize_sort() {
 
 		// Sort main containers
@@ -560,6 +663,27 @@ jQuery( document ).ready( function( $ ) {
 			}
 		});
 	}
+
+	// Convert hex and alpha values to rgba
+	function hexToRGB( hex, alpha ) {
+
+		var r = parseInt( hex.slice( 1, 3 ), 16 ),
+			g = parseInt( hex.slice( 3, 5 ), 16 ),
+			b = parseInt( hex.slice( 5, 7 ), 16 );
+
+		if (alpha) {
+			return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+		} else {
+			return "rgb(" + r + ", " + g + ", " + b + ")";
+		}
+	}
+	
+	// List items click function
+	//$( document ).on( 'click', 'ul.rulelist li', function() {
+		
+		// Toggle selected class
+		//$( this ).toggleClass( 'selected' );
+	//});
 });
 
 
