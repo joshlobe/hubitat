@@ -14,7 +14,7 @@
  * https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt
  */
 
-def version() { "1.1.4" }
+def version() { "1.1.5" }
 def js_version() { "1.1.4" }
 def css_version() { "1.1.4" }
 
@@ -224,8 +224,10 @@ preferences {
             
                     // Get default array and populate into hidden input (for resetting rules)
                     default_rules = "["
-                    resetRules.each{ default_rules += '"' + it.key + '"' + "," }
-                    default_rules = default_rules.substring( 0, default_rules.lastIndexOf( "," ) );
+					if( resetRules) {
+                    	resetRules.each{ default_rules += '"' + it.key + '"' + "," }
+                    	default_rules = default_rules.substring( 0, default_rules.lastIndexOf( "," ) )
+					}
                     default_rules += "]"
                     main_defaults = '{"hide_counts":"false","containers":[{"name":"Original Rules","slug":"original-rules","title_color":"","title_opacity":"","title_bold":"","container_color":"","container_opacity":"","visible":true,"rules":' + default_rules + '}]}'
             

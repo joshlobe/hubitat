@@ -1,3 +1,6 @@
+Version 1.1.5
+* Fixed installation error when no existing rules are found.
+
 Version 1.1.4
 * Adjusted color picker to "fire" when a preset color is selected.
 * Added opacity to color picker for container titles.
