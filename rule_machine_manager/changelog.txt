@@ -1,4 +1,7 @@
-Version 1.1.5
+Version 1.1.6 (2025-01-19)
+* Added "Paused" and "Disabled" status to each rule.
+
+Version 1.1.5 (2025-01-18)
 * Fixed installation error when no existing rules are found.
 
 Version 1.1.4

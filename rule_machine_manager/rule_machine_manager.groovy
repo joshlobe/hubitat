@@ -14,7 +14,7 @@
  * https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt
  */
 
-def version() { "1.1.5" }
+def version() { "1.1.6" }
 def js_version() { "1.1.4" }
 def css_version() { "1.1.4" }
 
@@ -35,23 +35,6 @@ definition(
     iconX2Url: ""
 )
 
-def isDuplicate( id ) {
-    
-    userRules = ''
-    
-    // Get user settings
-    settings.each{ if( it.key == 'userArray' ) { userRules = it.value } }
-    userRules = new JsonSlurper().parseText( userRules )
-    
-    // Loop each rule and create array of ids
-    final_user_rule_ids = []
-    userRules.containers.each{ it.rules.each{ final_user_rule_ids.push( it.toString() ) } }
-    
-    // Count how many times the rule exists in the array
-    count = final_user_rule_ids.count { it == id }
-    return count > 1 ? 'true' : 'false'
-}
-
 preferences {
     page(name: "mainPage", install: true, uninstall: true) {
         section {
@@ -61,6 +44,23 @@ preferences {
             resetRules = getRuleListArray()
             html = ""
             hide_counts = ""
+            
+            // Get apps list from http request and build map for paused/disabled status
+            def attributeMap = [:]
+            httpGet([ uri: "http://${location.hub.localIP}:8080/hub2/appsList" ]) { resp ->
+                if (resp.success) { 
+                    resp.data.apps.each {
+                        if( it.data.type == "Rule Machine" ) {
+                            it.children.each{
+                                attSubMap = [:]
+                                attSubMap['disabled'] = it.data.disabled
+                                attSubMap['paused'] = it.data.name.contains( '(Paused)' ) ? true : false
+                                attributeMap[it.id] = attSubMap
+                            }
+                        }
+                    }
+                }
+            }
             
             // Check if there are user rules defined
             settings.each{ if( it.key == 'userArray' ) { userRules = it.value } }
@@ -255,7 +255,7 @@ preferences {
             /**************************************************
             // Page containers
             **************************************************/
-            
+          
             // Begin page containers
             html += "<div id='rules_container'>"
             
@@ -367,9 +367,14 @@ preferences {
                                         copy_or_delete = "<div class='copy_rule'><i class='material-icons'>content_copy</i> Copy Rule</div>"
                                     }
                                     
+                                    // Get status for paused and/or disabled
+                                    getAtts = attributeMap[rule_id.toInteger()]
+                                    paused = getAtts?.paused == true ? ' <span class="not_installed">(Paused)</span>' : ''
+                                    disabled = getAtts?.disabled == true ? ' <span class="not_installed">(Disabled)</span>' : ''
+                                    
                                     // Create list item
                                     html += "<li id='${rule_id}' class='ui-state-default rule'>"
-                                        html += "<span class='rule_name'>${getValue}</span>"
+                                        html += "<span class='rule_name'>${getValue}${paused}${disabled}</span>"
                                     
                                         html += '<i class="material-icons submenu rule">more_vert</i>'
                                         html += '<div class="dropdown-content">'
@@ -395,10 +400,15 @@ preferences {
                                     rule_id = it.key
                                     userMap = getRuleListArray()
                                     getValue = userMap.find{it.key == rule_id.toInteger()}.value
+                                    
+                                    // Get status for paused and/or disabled
+                                    getAtts = attributeMap[rule_id.toInteger()]
+                                    paused = getAtts?.paused == true ? ' <span class="not_installed">(Paused)</span>' : ''
+                                    disabled = getAtts?.disabled == true ? ' <span class="not_installed">(Disabled)</span>' : ''
                                 
                                     // Create list item
                                     html += "<li id='${rule_id}' class='ui-state-default rule'>"
-                                        html += "<span class='rule_name'>${getValue}</span>"
+                                        html += "<span class='rule_name'>${getValue}${paused}${disabled}</span>"
                                     
                                         html += '<i class="material-icons submenu rule">more_vert</i>'
                                         html += '<div class="dropdown-content">'
@@ -450,8 +460,14 @@ preferences {
                     rules = getRuleList()
                     rules.each{ 
                         it.each{
+                            
+                            // Get status for paused and/or disabled
+                            getAtts = attributeMap[it.key.toInteger()]
+                            paused = getAtts?.paused == true ? ' <span class="not_installed">(Paused)</span>' : ''
+                            disabled = getAtts?.disabled == true ? ' <span class="not_installed">(Disabled)</span>' : ''
+                            
                             html += "<li id='${it.key}' class='ui-state-default rule'>"
-                                html += "<span class='rule_name'>${it.value}</span>"
+                                html += "<span class='rule_name'>${it.value}${paused}${disabled}</span>"
                             
                                 html += '<i class="material-icons submenu rule">more_vert</i>'
                                 html += '<div class="dropdown-content">'
@@ -544,6 +560,23 @@ preferences {
             paragraph "${grid}"
         }
     }
+}
+
+def isDuplicate( id ) {
+    
+    userRules = ''
+    
+    // Get user settings
+    settings.each{ if( it.key == 'userArray' ) { userRules = it.value } }
+    userRules = new JsonSlurper().parseText( userRules )
+    
+    // Loop each rule and create array of ids
+    final_user_rule_ids = []
+    userRules.containers.each{ it.rules.each{ final_user_rule_ids.push( it.toString() ) } }
+    
+    // Count how many times the rule exists in the array
+    count = final_user_rule_ids.count { it == id }
+    return count > 1 ? 'true' : 'false'
 }
 
 // Get default rule list
