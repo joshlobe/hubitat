@@ -1,3 +1,17 @@
+Version 2.1 (2025-02-30)
+* New mobile friendly layout.
+* Mobile design complete rework. App is much cleaner on mobile devices now.
+* Added multiple select support for Mac systems.
+* Container color now completely covers container and rules.
+* Title Color has been replaced with Font Color. This is the font color used throughout the container.
+* Edit Container is new, and will open an overlay where the container options can be selected (colors, bold, container title).
+* Added Hide Counts and Hide Filters buttons to the top of the page.
+* Added two new rule actions; View Rule Logs and View Rule Status. These are quicklinks to the corresponding rule pages.
+* Added a new Quick Save feature. This features requires oAuth on the app. Clicking the Quick Save button will open a walkthrough on how to enable oAuth.
+* New overlay for Create Container button.
+* Added filter highlights. When typing in a filter, it will change color to indicate it is active.
+* When moving rules between containers; the rules will "inherit" the styles of the container where they are placed.
+
 Version 2.0 (2025-02-23)
 * New rework on how rules are gathered. Now using http request instead of Rule Manager function.
 * Extensive rework on javascript code and app features.
