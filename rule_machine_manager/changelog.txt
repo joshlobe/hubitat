@@ -1,4 +1,7 @@
-Version 2.1 (2025-02-30)
+Version 2.1.1 (2025-01-30)
+* Fixed using app from remote admin.
+
+Version 2.1 (2025-01-30)
 * New mobile friendly layout.
 * Mobile design complete rework. App is much cleaner on mobile devices now.
 * Added multiple select support for Mac systems.
@@ -12,7 +15,7 @@ Version 2.1 (2025-02-30)
 * Added filter highlights. When typing in a filter, it will change color to indicate it is active.
 * When moving rules between containers; the rules will "inherit" the styles of the container where they are placed.
 
-Version 2.0 (2025-02-23)
+Version 2.0 (2025-01-23)
 * New rework on how rules are gathered. Now using http request instead of Rule Manager function.
 * Extensive rework on javascript code and app features.
 * New overlay for alerts and confirmations.
