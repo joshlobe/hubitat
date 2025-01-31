@@ -23,8 +23,7 @@ jQuery( document ).ready( function( $ ) {
 		var thisSave = $( this );
 		
 		// Get variables from page
-		var accessToken = $( 'input#accessToken' ).val();
-		var hubIP = $( 'input#hubIP' ).val();
+		var accessToken = $( 'input#accessToken' ).val()
 		var appID = $( 'input#appID' ).val();
 		var appState = $( 'input#appState' ).val();
 		var userOpts = $( 'input#userArray' ).val();
@@ -70,7 +69,7 @@ jQuery( document ).ready( function( $ ) {
 		
 		// Fire endpoint request with page settings array
 		$.ajax({
-			url: "http://" + hubIP + "/apps/api/" + appID + "/updateSettings?access_token=" + accessToken,
+			url: "/apps/api/" + appID + "/updateSettings?access_token=" + accessToken,
 			method: "POST",
 			headers: { 
 				"Access-Control-Allow-Origin": "*", 
@@ -291,7 +290,6 @@ jQuery( document ).ready( function( $ ) {
 					var checkTitle = $( 'input#overlayContainerTitle' ).val();
 					if( ! checkTitle || checkTitle == "" ) {
 						
-
 						// Show input validation error
 						$( 'div#overlayTitleError' ).show();
 						$( 'input#overlayContainerTitle' ).css( 'border', '1px solid red');

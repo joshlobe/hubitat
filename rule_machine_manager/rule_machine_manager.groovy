@@ -274,17 +274,17 @@ preferences {
                                 	html += '<div class="mdl-cell mdl-cell--3-col  mdl-cell--3-col-tablet rule_title_right">'
                                 
                                         // Add edit rule
-                                        html += "<span class='tooltip ruleView' url='http://${location.hub.localIP}/installedapp/configure/${rule_id}'>"
+                                        html += "<span class='tooltip ruleView' url='/installedapp/configure/${rule_id}'>"
                                             html += "<i class='material-icons view_rule rule' style='${style}'>content_paste_go</i><span class='tooltiptext'>Edit Rule</span>"
                                         html += '</span>'
                                 
                                 		// Add rule status
-                                        html += "<span class='tooltip ruleViewStatus' url='http://${location.hub.localIP}/installedapp/status/${rule_id}'>"
+                                        html += "<span class='tooltip ruleViewStatus' url='/installedapp/status/${rule_id}'>"
                                             html += "<i class='material-icons-outlined view_rule_status rule' style='${style}'>ballot</i><span class='tooltiptext'>View Rule Status</span>"
                                         html += '</span>'
                                 
                                 		// Add rule logs
-                                        html += "<span class='tooltip ruleViewLogs' url='http://${location.hub.localIP}/logs?tab=past&appId=${rule_id}'>"
+                                        html += "<span class='tooltip ruleViewLogs' url='/logs?tab=past&appId=${rule_id}'>"
                                             html += "<i class='material-icons-outlined view_rule_logs rule' style='${style}'>integration_instructions</i><span class='tooltiptext'>View Rule Logs</span>"
                                         html += '</span>'
                                 
@@ -323,9 +323,11 @@ preferences {
             // Include material icons
             html += "<link rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined'>"
             
+            
+            
             // Add scripts/styles for page
-			html += "<script defer src='http://${location.hub.localIP}/local/rule_machine_manager.js'></script>"
-            html += "<link rel='stylesheet' href='http://${location.hub.localIP}/local/rule_machine_manager.css'>"
+			html += "<script defer src='/local/rule_machine_manager.js'></script>"
+            html += "<link rel='stylesheet' href='/local/rule_machine_manager.css'>"
             
             /**************************************************
             // Page render html
@@ -420,7 +422,6 @@ def pageOptionsPanel( optsUserRules) {
     		// Define hidden inputs for app details
     		panel += "<input type='hidden' id='appState' value='${app.getInstallationState()}' />"
     		panel += "<input type='hidden' id='accessToken' value='${state.accessToken}' />"
-    		panel += "<input type='hidden' id='hubIP' value='${location.hub.localIP}' />"
     		panel += "<input type='hidden' id='appID' value='${app.getId()}' />"
     
     		// Header area icons
