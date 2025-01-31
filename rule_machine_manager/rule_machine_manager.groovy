@@ -33,9 +33,9 @@ import groovy.json.JsonOutput
 import groovyx.net.http.HttpResponseException
 
 // Define versions
-def version() { "2.1" }
-def js_version() { "2.1" }
-def css_version() { "2.1" }
+def version() { "2.1.1" }
+def js_version() { "2.1.1" }
+def css_version() { "2.1.1" }
 
 // Define globals (note: do not use def (scope))
 ruleMap = [:]
