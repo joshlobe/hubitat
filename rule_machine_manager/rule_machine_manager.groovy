@@ -14,11 +14,12 @@
  * https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt
  */
 
+// Define application
 definition(
     name: "Rule Machine Manager",
     namespace: "ruleMachineManager",
     author: "Josh Lobe",
-    description: "Visual interface for Managing Rule Machine Rules.",
+    description: "Visual Interface for Managing Rules from Various Applications.",
     category: "Convenience",
     importUrl: "https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/rule_machine_manager.groovy",
     iconUrl: "",
@@ -33,73 +34,55 @@ import groovy.json.JsonOutput
 import groovyx.net.http.HttpResponseException
 
 // Define versions
-def version() { "2.1.1" }
-def js_version() { "2.1.1" }
-def css_version() { "2.1.1" }
+def version() { "3.0" }
+def js_version() { "3.0" }
+def css_version() { "3.0" }
 
 // Define globals (note: do not use def (scope))
 ruleMap = [:]
+ruleMapNames = [:]
 newRulesCheck = []
-
-// Define rule map; built from httpget call and rebuilding array
-try {
-    httpGet([ uri: "http://127.0.0.1:8080/hub2/appsList" ]) { resp ->
-        if (resp.success) {  
-            if( logDebugEnable ) log.debug "Getting Apps List..."
-            resp.data.apps.each {
-                // Only scrape rule machine data
-                if( it.data.type == "Rule Machine" ) {
-                    // Loop children (these are all rule app ids)
-                    it.children.each{
-                        
-                        // Create submap (define any needed variables)
-                        attSubMap = [:]
-                        attSubMap['name'] = it.data.name
-                        attSubMap['disabled'] = it.data.disabled
-                        attSubMap['paused'] = it.data.name.contains( '(Paused)' ) ? true : false
-                        
-                        // Add submap to rulemap
-                        ruleMap[it.id] = attSubMap
-                    }
-                }
-            }
-            if( logDebugEnable ) log.debug "Finished Getting Apps List..."
-        }
-    }
-} 
-catch (Exception e) { log.warn "Get Apps List Failed: ${e.message}" }
+populateRuleList()
 
 // Begin preferences
 preferences {
     
     // Define mappings to handle javascript requests
-    mappings {
-        path("/updateSettings") {
-            action: [ POST: "updateSettings" ]
-        }
-    }
+    mappings { path("/updateSettings") { action: [ POST: "updateSettings" ] } }
     
     // Begin page
     page(name: "mainPage", install: true, uninstall: true) {
         section {
             
-            if( logDebugEnable ) log.debug "Beginning Page HTML..."
+            /**************************************************
+            // Begin page html
+            **************************************************/
             
-            // Begin page HTML
+            if( logDebugEnable ) log.debug "Beginning Page HTML..."
             html = ""
+            
+            /**************************************************
+            // Page notices (new/deleted rules, new/deleted machines)
+            **************************************************/
             
             // Check if there are user rules defined
             userRules = settings?.userArray ? settings?.userArray : ''
-            
-            /**************************************************
-            // Page notices (new rules, deleted rules)
-			// These are only executed when user rules are stored; not when app is first installed
-            **************************************************/
             
             // If user rules are found
             if( userRules != '' ) {
                 
                 if( logDebugEnable ) log.debug "Using User Created Rules for Containers..."
+                
+                // Decode rules
+                userRules = new JsonSlurper().parseText( userRules )
+                
+                // Check for newly supported rule machine types
+                checkNewMachines = checkForNewMachines( userRules )
+                if( checkNewMachines ) { html += checkNewMachines }
+                
+                // Check for deleted rule machine types
+                checkDeletedMachines = checkForDeletedMachines( userRules )
+                if( checkDeletedMachines ) { html += checkDeletedMachines }
                 
                 // Check for new rules
                 checkNewRules = checkForNewRules( userRules )
@@ -108,9 +91,6 @@ preferences {
                 // Check for deleted rules
                 checkDeletedRules = checkForDeletedRules( userRules )
                 if( checkDeletedRules ) { html += checkDeletedRules }
-                
-                // Decode rules
-                userRules = new JsonSlurper().parseText( userRules )
             
                 // If there are new rules not yet saved in RMM, add them to the original rules container
                 userRules.containers.each{
@@ -131,11 +111,54 @@ preferences {
             }
             
             /**************************************************
-            // Page options panel
+            // Page header
             **************************************************/
             
-            // Create page options panel
-            html += pageOptionsPanel( userRules )
+            // Define variables
+            welcome_nag = userRules.welcome_nag ? userRules.welcome_nag : 'true'
+            ruleMachines = userRules.containsKey( 'rule_machines' ) ? JsonOutput.toJson( userRules.rule_machines ) : JsonOutput.toJson( new JsonSlurper().parseText( defaultUserArrayText() ).rule_machines )
+            checkMachines = userRules.containsKey( 'check_machines' ) ? JsonOutput.toJson( userRules.check_machines ) : JsonOutput.toJson( new JsonSlurper().parseText( defaultUserArrayText() ).check_machines )
+            activeMachines = userRules && userRules.hide_machines == 'true' ? 'active' : ''
+            machinesText = userRules && userRules.hide_machines == 'true' ? 'Show Machine Names' : 'Hide Machine Names'
+            activeCounts = userRules && userRules.hide_counts == 'true' ? 'active' : ''
+            countsText = userRules && userRules.hide_counts == 'true' ? 'Show Counts' : 'Hide Counts'
+            activeFilters = userRules && userRules.hide_filters == 'true' ? 'active' : ''
+            filtersText = userRules && userRules.hide_filters == 'true' ? 'Show Filters' : 'Hide Filters'
+            hideGlobalFilter = check_filters != '' ? 'display:none;' : ''
+
+            // Begin header area
+            html += "<div id='header_panel' class='mdl-grid'>"
+                html += "<div id='header_left' class='mdl-cell mdl-cell--6-col graybox'>"
+            
+                    html += "<span id='create_group_button' class='button'><i class='material-icons'>add_circle</i>Create Container</span>"
+                    html += "<span id='global_filter' style='${hideGlobalFilter}'><input id='global_filter_input' type='text' placeholder='Filter All Containers...' /></span>"
+                html += "</div>"
+                html += "<div id='header_right' class='mdl-cell mdl-cell--6-col graybox'>"
+
+                    // Define hidden inputs
+                    html += "<input type='hidden' id='appState' value='${app.getInstallationState()}' />"
+                    html += "<input type='hidden' id='accessToken' value='${state.accessToken}' />"
+                    html += "<input type='hidden' id='appID' value='${app.getId()}' />"
+                    html += "<input type='hidden' id='load_default_opts' value='${defaultUserArrayText()}' />"
+                    html += "<input type='hidden' id='welcome_nag' value='${welcome_nag}' />"
+                    html += "<input type='hidden' id='ruleMachines' value='${ruleMachines}' />"
+                    html += "<input type='hidden' id='checkMachines' value='${checkMachines}' />"
+            
+                    // Create hubitat hidden form input and variables
+                    html += '<input type="hidden" name="userArray.type" value="text">'
+                    html += '<input type="hidden" name="userArray.multiple" value="false">'
+                    html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray">'
+
+                    // Header area icons
+                    html += "<span class='tooltip'><span id='options_panel' class='button'><i class='material-icons'>settings</i><span class='tooltiptext'>App Options</span></span></span>"
+                    html += "<span class='tooltip'><span id='help_welcome' class='button'><i class='material-icons'>help</i><span class='tooltiptext'>Help</span></span></span>"
+                    html += "<span class='tooltip'><span id='quick_save' class='button'><i class='material-icons'>rocket</i><span class='tooltiptext'>Quick Save</span></span></span>"
+                    html += "<span class='tooltip'><span id='hideCounts' class='button ${activeCounts}'><i class='material-icons'>ballot</i><span class='tooltiptext'>${countsText}</span></span></span>"
+                    html += "<span class='tooltip'><span id='hideFilters' class='button ${activeFilters}'><i class='material-icons'>table_rows</i><span class='tooltiptext'>${filtersText}</span></span></span>"
+                    html += "<span class='tooltip'><span id='hideMachines' class='button ${activeMachines}'><i class='material-icons'>data_array</i><span class='tooltiptext'>${machinesText}</span></span></span>"
+                    html += "<span class='tooltip'><span id='done_submit' class='button'><i class='material-icons'>check_circle</i><span class='tooltiptext'>Done</span></span></span>"
+                html += "</div>"
+            html += "</div>"
             
             /**************************************************
             // Page containers
@@ -158,6 +181,7 @@ preferences {
                 container_color = ( it.container_color && it.container_color != '' && it.container_color != 'null' ) ? it.container_color : '#FFFFFF'
                 container_opacity = ( it.container_opacity && it.container_opacity != '' && it.container_opacity != 'null' ) ? it.container_opacity : '1'
 
+                // Convert colors to rgb
                 rgb = hubitat.helper.ColorUtils.hexToRGB( container_color )
                 rgba_string = "rgba(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ", " + container_opacity + ")"
 
@@ -170,7 +194,7 @@ preferences {
                     title_bold = ( it.title_bold && it.title_bold == 'true' ) ? 'true' : 'false'
                 	font_weight = ( it.title_bold && it.title_bold == 'true' ) ? 'bold' : 'normal'
 
-                	// Set hidden input fields
+                	// Set hidden input fields for this container
                     html += "<input type='hidden' class='title_color' value='${title_color}' />"
                     html += "<input type='hidden' class='title_opacity' value='${title_opacity}' />"
                     html += "<input type='hidden' class='title_bold' value='${title_bold}' />"
@@ -236,10 +260,11 @@ preferences {
                         html += '</div>'
                     html += "</h4>"
 
-                    // Create rulelist
+                    /**************************************************
+                    // Container rules
+                    **************************************************/
                 	if( logDebugEnable ) log.debug "Creating Rule List For Container ${it.name}..."
-                    visible = it.visible == false ? 'display:none;' : ''
-                    html += "<ul class='rulelist' style='${visible}'>"
+                    html += "<ul class='rulelist' style='${it.visible == false ? 'display:none;' : ''}'>"
 
                         // Loop each rule
                         it.rules.each{ 
@@ -258,16 +283,20 @@ preferences {
                                 def name = getAtts?.name
                                 def paused = getAtts?.paused == true ? ' <span class="paused">(Paused)</span>' : ''
                                 def disabled = getAtts?.disabled == true ? ' <span class="disabled">(Disabled)</span>' : ''
-                                def style = "color:${title_color};opacity:${title_opacity};"
+                                def ruleType = getAtts?.ruleType
+                                def fontStyle = "color:${title_color};opacity:${title_opacity};"
+                                def machineType = "<span class='ruleType'>[${ruleMapNames[ruleType]}]</span>"
+                                def machineCheckArray = userRules.rule_machines.contains( ruleType )
+                                def listItemStyle = machineCheckArray == false ? 'display:none;' : ''
 
                                 // Create list item
-                                html += "<li id='${rule_id}' class='mdl-grid ui-state-default rule'>"
+                                html += "<li id='${rule_id}' class='mdl-grid ui-state-default rule ${ruleType}' style='${listItemStyle}'>"
                                 
                                 	// Column left
                                 	html += '<div class="mdl-cell mdl-cell--9-col  mdl-cell--5-col-tablet rule_title_left">'
                                 
                                         // Rule name
-                                        html += "<span class='rule_name' style='${style}'>${name}${disabled}</span>"
+                                        html += "<span class='rule_name' style='${fontStyle}'>${name}${disabled}${machineType}</span>"
                                 	html += '</div>'
                                 
                                 	// Column right
@@ -275,23 +304,23 @@ preferences {
                                 
                                         // Add edit rule
                                         html += "<span class='tooltip ruleView' url='/installedapp/configure/${rule_id}'>"
-                                            html += "<i class='material-icons view_rule rule' style='${style}'>content_paste_go</i><span class='tooltiptext'>Edit Rule</span>"
+                                            html += "<i class='material-icons view_rule rule' style='${fontStyle}'>content_paste_go</i><span class='tooltiptext'>Edit Rule</span>"
                                         html += '</span>'
                                 
                                 		// Add rule status
                                         html += "<span class='tooltip ruleViewStatus' url='/installedapp/status/${rule_id}'>"
-                                            html += "<i class='material-icons-outlined view_rule_status rule' style='${style}'>ballot</i><span class='tooltiptext'>View Rule Status</span>"
+                                            html += "<i class='material-icons-outlined view_rule_status rule' style='${fontStyle}'>ballot</i><span class='tooltiptext'>View Rule Status</span>"
                                         html += '</span>'
                                 
                                 		// Add rule logs
                                         html += "<span class='tooltip ruleViewLogs' url='/logs?tab=past&appId=${rule_id}'>"
-                                            html += "<i class='material-icons-outlined view_rule_logs rule' style='${style}'>integration_instructions</i><span class='tooltiptext'>View Rule Logs</span>"
+                                            html += "<i class='material-icons-outlined view_rule_logs rule' style='${fontStyle}'>integration_instructions</i><span class='tooltiptext'>View Rule Logs</span>"
                                         html += '</span>'
                                 
                                 		// Add rule copy or delete
                                 		def copyDel = tempArray.count( rule_id ) > 1 ? 'delete' : 'copy'
                                         html += "<span class='tooltip ${copyDel == 'copy' ? 'copy_rule' : 'delete_duplicate'}'>"
-                                            html += "<i class='material-icons ${copyDel == 'copy' ? 'copy_rule' : 'duplicate_rule'} rule' style='${style}'>${copyDel == 'copy' ? 'content_copy' : 'delete_outline'}</i>"
+                                            html += "<i class='material-icons ${copyDel == 'copy' ? 'copy_rule' : 'duplicate_rule'} rule' style='${fontStyle}'>${copyDel == 'copy' ? 'content_copy' : 'delete_outline'}</i>"
                                 			html += "<span class='tooltiptext'>${copyDel == 'copy' ? 'Create' : 'Delete'} Duplicate Rule</span>"
                                         html += "</span>"
                                 
@@ -308,22 +337,20 @@ preferences {
                
             html += '</div>'
             
-            // Create hidden form input and variables
-            html += '<input type="hidden" name="userArray.type" value="text">'
-            html += '<input type="hidden" name="userArray.multiple" value="false">'
-            html += '<input type="hidden" name="settings[userArray]" class="mdl-textfield__input" id="userArray">'
+            /**************************************************
+            // Include scripts and styles
+            **************************************************/
             
             // Include jquery
             html += "<script src='https://code.jquery.com/jquery-3.7.1.min.js'></script>"
             html += "<script src='https://code.jquery.com/ui/1.14.1/jquery-ui.min.js'></script>"
+            html += "<link rel='stylesheet' href='https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css'>"
             
             // Include confirm overlay
             html += "<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.15.10/sweetalert2.min.css'>"
             
             // Include material icons
             html += "<link rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined'>"
-            
-            
             
             // Add scripts/styles for page
 			html += "<script defer src='/local/rule_machine_manager.js'></script>"
@@ -336,6 +363,10 @@ preferences {
             // Display page
             paragraph "${html}"
             paragraph "<hr />"
+            
+            /**************************************************
+            // Page footer area
+            **************************************************/
             
             if( logDebugEnable ) log.debug "Creating Page Footer..."
             
@@ -351,7 +382,6 @@ preferences {
             
             			// Footer notes
                         grid += "<strong>NOTE:</strong> Remember to click \"Done\" after modifying any options or resetting the rules.<br />"
-                        grid += "<strong>NOTE:</strong> Only rules from Rule Manager 5.0+ are currently available using this application.<br />"
                         grid += "<strong>GET HELP:</strong> "
             			grid += "<a href='https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface/124689' target='_blank' />Hubitat Community Thread</a><br />"
                     grid += "</p>"
@@ -379,7 +409,7 @@ preferences {
             		// Footer details area
             		def getStateSpan = app.getInstallationState() == 'COMPLETE' ? '<span class="installed">Enabled</span>' : '<span class="not_installed">Not Enabled</span>'
             		def getTokenSpan = state.accessToken != null && state.accessToken != '' ? '<span class="installed">Enabled</span>' : "Not Enabled"
-                    grid += "<table><tbody>"
+                    grid += "<table id='appDetailsTable'><tbody>"
                         grid += "<tr><td><strong>App Version: </strong></td><td>${version()}</td></tr>"
                         grid += "<tr><td><strong>App State: </strong></td><td>${getStateSpan}</td></tr>"
                         grid += "<tr><td><strong>JS File: </strong></td><td>${js_installed}</td></tr>"
@@ -397,153 +427,21 @@ preferences {
     }
 }
 
-// Create page options panel
-def pageOptionsPanel( optsUserRules) {
-    
-    if( logDebugEnable ) log.debug "Creating Page Options Panel..."
-    
-    // Define variables
-    check_counts = optsUserRules && optsUserRules.hide_counts == 'true' ? 'checked="checked"' : ''
-    activeCounts = optsUserRules && optsUserRules.hide_counts == 'true' ? 'active' : ''
-    countsText = optsUserRules && optsUserRules.hide_counts == 'true' ? 'Show Counts' : 'Hide Counts'
-    check_filters = optsUserRules && optsUserRules.hide_filters == 'true' ? 'checked="checked"' : ''
-    activeFilters = optsUserRules && optsUserRules.hide_filters == 'true' ? 'active' : ''
-    filtersText = optsUserRules && optsUserRules.hide_filters == 'true' ? 'Show Filters' : 'Hide Filters'
-    hideGlobalFilter = check_filters != '' ? 'display:none;' : ''
-    
-    // Begin header area
-	panel = "<div id='header_panel' class='mdl-grid'>"
-        panel += "<div id='header_left' class='mdl-cell mdl-cell--6-col graybox'>"
-            panel += "<span id='create_group_button' class='button'><i class='material-icons'>add_circle</i>Create Container</span>"
-            panel += "<span id='global_filter' style='${hideGlobalFilter}'><input id='global_filter_input' type='text' placeholder='Filter All Containers...' /></span>"
-        panel += "</div>"
-        panel += "<div id='header_right' class='mdl-cell mdl-cell--6-col graybox'>"
-    
-    		// Define hidden inputs for app details
-    		panel += "<input type='hidden' id='appState' value='${app.getInstallationState()}' />"
-    		panel += "<input type='hidden' id='accessToken' value='${state.accessToken}' />"
-    		panel += "<input type='hidden' id='appID' value='${app.getId()}' />"
-    
-    		// Header area icons
-            panel += "<span class='tooltip'><span id='hideCounts' class='button ${activeCounts}'><i class='material-icons'>ballot</i><span class='tooltiptext'>${countsText}</span></span></span>"
-            panel += "<span class='tooltip'><span id='hideFilters' class='button ${activeFilters}'><i class='material-icons'>table_rows</i><span class='tooltiptext'>${filtersText}</span></span></span>"
-            panel += "<span class='tooltip'><span id='quick_save' class='button'><i class='material-icons'>rocket</i><span class='tooltiptext'>Quick Save</span></span></span>"
-            panel += "<span class='tooltip'><span id='options_panel' class='button'><i class='material-icons'>settings</i><span class='tooltiptext'>Page Options</span></span></span>"
-            panel += "<span class='tooltip'><span id='help_welcome' class='button'><i class='material-icons'>help</i><span class='tooltiptext'>Help</span></span></span>"
-            panel += "<span class='tooltip'><span id='done_submit' class='button'><i class='material-icons'>check_circle</i><span class='tooltiptext'>Done</span></span></span>"
-        panel += "</div>"
-    panel += "</div>"
-
-    // Hidden options panel div
-    panel += "<div id='options_section'>"
-
-        panel += '<h2>Options Panel</h2>'
-        panel += "<div id='main_panel'>"
-
-    		// Export options
-            panel += "<div id='export_panel' class='mdl-grid'>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<strong>Export Options</strong><br />"
-                        panel += "Click the button to generate the app settings into the textarea.<br />"
-                        panel += "Copy/paste the text and save in a text document for importing at a later time.<br />"
-                        panel += "Copy Options will copy the text to the browser clipboard which can then be pasted into a document."
-                    panel += "</p>"
-                panel += "</div>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<span id='generate_export' class='button'><i class='material-icons'>import_export</i> Export Options</span>"
-                        panel += "<span class='tooltip'>"
-                            panel += "<span id='copy_export' class='button'>"
-                                panel += "<span class='tooltiptext' id='exportTooltip'>Copy to clipboard</span>"
-                                panel += "<i class='material-icons'>content_copy</i> Copy Options"
-                            panel += "</span>"
-                        panel += "</span>"
-                        panel += "<textarea id='export_textarea'></textarea>"
-                    panel += "</p>"
-                panel += "</div>"
-            panel += "</div>"
-
-            panel += "<hr />"
-
-    		// Import options
-            panel += "<div id='import_panel' class='mdl-grid'>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<strong>Import Options</strong><br />"
-                        panel += "Paste the contents from a previous export into the textarea.<br />"
-                        panel += "Click Import Options to populate the settings.<br />"
-                        panel += "<strong>NOTE:</strong> The page will reload automatically after clicking Import Options to save the settings."
-                    panel += "</p>"
-                panel += "</div>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<textarea id='import_textarea'></textarea><br />"
-                        panel += "<span id='generate_import' class='button'><i class='material-icons'>import_export</i> Import Options</span>"
-                    panel += "</p>"
-                panel += "</div>"
-            panel += "</div>"
-
-            panel += "<hr />"
-
-    		// Global options
-            panel += "<div id='global_panel' class='mdl-grid'>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<strong>Global Options</strong><br />"
-                            panel += "<input type='checkbox' id='hide_counts' ${check_counts} /> Hide item counts on containers?<br />"
-                            panel += "<input type='checkbox' id='hide_filters' ${check_filters} /> Hide all filter boxes (containers and global)?<br />"
-    
-    						// Hidden input for tracking welcome nag
-    						welcome_nag = optsUserRules.welcome_nag ? optsUserRules.welcome_nag : 'true'
-    						panel += "<input type='hidden' id='welcome_nag' value='${welcome_nag}' />"
-                    panel += "</p>"
-                panel += "</div>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                    panel += "</p>"
-                panel += "</div>"
-            panel += "</div>"
-
-            panel += "<hr />"
-
-    		// Reset rules
-            panel += "<div id='reset_rules' class='mdl-grid'>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<strong>Reset Options</strong><br />"
-
-                            panel += "Use this tool to restore the app back to initial default values.<br />"
-                            panel += "This can be useful if something is buggy, or to start a clean slate.<br />"
-                    panel += "</p>"
-                panel += "</div>"
-                panel += "<div class='mdl-cell mdl-cell--6-col graybox'>"
-                    panel += "<p>"
-                        panel += "<strong>Note:</strong> Clicking the button will erase any customizations and reload the page.<br />"
-                        panel += "<span id='reset_opts' class='button'><i class='material-icons'>restart_alt</i> Reset Options</span>"
-                        panel += "<input type='hidden' id='load_default_opts' value='${defaultUserArrayText()}' />"
-                    panel += "</p>"
-                panel += "</div>"
-            panel += "</div>"
-
-        panel += "</div>"
-    panel += "</div>"
-    
-    if( logDebugEnable ) log.debug "Finished Page Options Panel..."
-    
-    return panel
-}
-
 // Define default container and array of rules not yet saved in the user settings
 def defaultUserArrayText() {
     
-    // Get original rule list array
-    origRules = ruleMap
+    // Build names for hidden input
+    buildNames = '['
+    if( ruleMapNames ) {
+        ruleMapNames.each{ buildNames += '"' + it.key + '",' }    
+        buildNames = buildNames.substring( 0, buildNames.lastIndexOf( "," ) )
+    }
+    buildNames += ']'
                 
     // Build string of rule ids, remove trailing comma
     buildRules = '['
-    if( origRules ) {
-        origRules.each{ buildRules += '"' + it.key + '",' }
+    if( ruleMap ) {
+        ruleMap.each{ buildRules += '"' + it.key + '",' }
         buildRules = buildRules.substring( 0, buildRules.lastIndexOf( "," ) )
     }
     buildRules += ']'
@@ -552,7 +450,10 @@ def defaultUserArrayText() {
     text = '''{
         "hide_counts":"false",
         "hide_filters":"false",
+		"hide_machines": "false",
 		"welcome_nag": "true",
+		"rule_machines": ''' + buildNames + ''',
+		"check_machines": ''' + buildNames + ''',
         "containers":[{
 			"name":"Original Rules",
             "slug":"original-rules",
@@ -569,15 +470,80 @@ def defaultUserArrayText() {
     return text
 }
 
+// Check for new rule machines
+def checkForNewMachines( userRules ) {
+    
+    // Get default and user values
+    defaults = new JsonSlurper().parseText( defaultUserArrayText() ).check_machines
+    saved = userRules.check_machines
+    
+    // Remove from defaults any values already saved
+    saved.each{ defaults.removeAll( it ) }
+    
+    // If there are remaining values
+    if( defaults ) {
+        
+        // Loop each removed machine type and make human readable message of machine types
+        defaultsString = ''
+        defaults.each { defaultsString += splitCamelCase( it ) + ', ' }
+    	defaultsString = defaultsString.substring( 0, defaultsString.lastIndexOf( "," ) )
+        
+        // Message
+        message = "<div id='rule_machines_found' class='page_notice'>"
+        
+        	message += "<i class='material-icons notification'>notifications</i>"
+        	message += "New rule machine types found <strong>(" + defaultsString + ")</strong>! Please visit App Options -> Global Options to enable."
+        message += "</div>"
+        
+        return message
+    }
+    else {
+        
+        if( logDebugEnable ) log.debug "No Deleted Machines Found..."
+        return false;
+    }
+}
+
+// Check for deleted machines
+def checkForDeletedMachines( userRules ) {
+    
+    // Get default and user values
+    defaults = new JsonSlurper().parseText( defaultUserArrayText() ).check_machines
+    saved = userRules.check_machines
+    
+    // Loop each defaults and remove if checked
+	defaults.each{ saved.removeAll( it ) }
+    
+    // If any machines remaining; they have been removed
+    if( saved ) {
+        
+        // Loop each removed machine type and make human readable message of machine types
+        savedString = ''
+        saved.each { savedString += splitCamelCase( it ) + ', ' }
+    	savedString = savedString.substring( 0, savedString.lastIndexOf( "," ) )
+        
+        // Message
+        message = "<div id='rule_machines_deleted' class='page_notice'>"
+        
+        	message += "<i class='material-icons notification'>notifications</i>"
+        	message += "A machine type has been removed <strong>(" + savedString + ")</strong>. Please save the page options to update."
+        message += "</div>"
+        
+        return message
+    }
+    else {
+        
+        if( logDebugEnable ) log.debug "No New Machines Found..."
+        return false;
+    }
+}
+
 // Check for new rules
 def checkForNewRules( userRules ) {
-    
-    // Parse user rules
-    parseUserRules = new JsonSlurper().parseText( userRules )
 
     // Iterate user rules to build final array of keys
     newRules = []
-    parseUserRules.containers.each{ it.rules.each{ newRules.push( it.toString() ) } }
+    userRules.containers.each{ it.rules.each{ newRules.push( it.toString() ) } }
     
     // Get any new rules that have been added
     ruleMap.each{ if( ! newRules.contains( it.key.toString() ) ) { newRulesCheck.push( it ) } }
@@ -588,10 +554,11 @@ def checkForNewRules( userRules ) {
         if( logDebugEnable ) log.debug "New Rules Found..."
         
         // Build new rules found message
-        messageNew = "<div id='rules_found'>"
+        messageNew = "<div id='rules_found' class='page_notice'>"
 
             messageNew += "<i class='material-icons notification'>notifications</i>"
         	messageNew += "New rules (${newRulesCheck.size()}) have been discovered in the Rule Manager App and added to the \"Original Rules\" container. Please click the \"Done\" button to save after any modifications."
+        	messageNew += "<br /><br /><strong>NOTE:</strong> If the new rules are not visible in the original rules container; please visit App Options -> Global Options to ensure all rule machine types are displayed."
         messageNew += "</div>"
         
         return messageNew
@@ -606,13 +573,10 @@ def checkForNewRules( userRules ) {
 
 // Check for deleted rules
 def checkForDeletedRules( userRules ) {
-    
-    // Parse current user rules
-    parseUserRules = new JsonSlurper().parseText( userRules )
 
     // Define final array, compare with new rules and extract deleted rules
     deletedRules = []
-    parseUserRules.containers.each{ it.rules.each{ deletedRules.push( it.toString() ) } }
+    userRules.containers.each{ it.rules.each{ deletedRules.push( it.toString() ) } }
     ruleMap.each{ deletedRules.removeAll( it.key.toString() ) }
 
     // Check what is left in this array against allowed rules; to allow duplicates through
@@ -628,7 +592,7 @@ def checkForDeletedRules( userRules ) {
         if( logDebugEnable ) log.debug "Deleted Rules Found..."
         
         // Build deleted rules message
-        messageDeleted = "<div id='rules_deleted'>"
+        messageDeleted = "<div id='rules_deleted' class='page_notice'>"
 
             messageDeleted += "<i class='material-icons notification'>notifications</i>"
         	messageDeleted += "Some rules (${deletedRules.size()}) have been deleted in the Rule Manager App and removed from any containers. Please click the \"Done\" button to save after any modifications."
@@ -691,6 +655,91 @@ def createThisAccessToken() {
         
         if( logDebugEnable ) log.debug "Found Exisiting Access Token: " + state.accessToken
     }
+}
+
+// Return a camel case string in capitals with spaces
+def splitCamelCase(s) {
+    
+   return s.replaceAll( String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])" ), " " ).capitalize();
+}
+
+// Helper function to define rule list
+def createRulelistSubmap( ruleName, camelName, array ) {
+    
+    attSubMap = [:]
+    attSubMap['name'] = array.data.name
+    attSubMap['disabled'] = array.data.disabled
+    attSubMap['paused'] = array.data.name.contains( '(Paused)' ) ? true : false
+    attSubMap['ruleType'] = camelName
+
+    // Add submap to rulemap
+    ruleMap[array.id] = attSubMap
+}
+
+// Populate rule list
+def populateRuleList() {
+    
+    // Define rule map; built from httpget call and rebuilding array
+    try {
+        httpGet([ uri: "http://127.0.0.1:8080/hub2/appsList" ]) { resp ->
+            if (resp.success) {  
+
+                if( logDebugEnable ) log.debug "Getting Apps List..."
+                
+                // Set array of allowed machine types
+                machineTypes = [:]
+                machineTypes['ruleMachine'] = 'Rule Machine'
+                machineTypes['roomLighting'] = 'Room Lighting'
+                machineTypes['buttonControllers'] = 'Button Controllers'
+                machineTypes['basicButtonControllers'] = 'Basic Button Controllers'
+                machineTypes['motionAndModeLightingApps'] = 'Motion and Mode Lighting Apps'
+
+                // Loop each app type
+                resp.data.apps.each {
+                    
+                    // If this app is in our allowed list
+                    if( machineTypes.containsValue( it.data.type ) ) {
+                        
+                        // Define variables
+                        ruleName = it.data.type
+                        camelName = machineTypes.find{ it.value == ruleName }?.key
+                        
+                        if( logDebugEnable ) log.debug "Adding ${ruleName} Rules..."
+
+                        // Add to names map
+                        ruleMapNames[camelName] = ruleName
+                        
+                        // If this apps rules are in the grandchildren
+                        if( ruleName == "Button Controllers" ) {
+                            
+                            // Loop children (these are all rule app ids)
+                            it.children.each{
+                                
+                                it.children.each{
+
+
+                                    // Create submap (define any needed variables)
+                                    createRulelistSubmap( ruleName, camelName, it )
+                                }
+                            }
+                        }
+                        // Else app rules are in the children
+                        else {
+
+                            // Loop children (these are all rule app ids)
+                            it.children.each{
+
+                                // Create submap (define any needed variables)
+                                createRulelistSubmap( ruleName, camelName, it )
+                            }
+                        }
+                    }
+                }
+                if( logDebugEnable ) log.debug "Finished Getting Apps List..."
+            }
+        }
+    } 
+    catch (Exception e) { log.warn "Get Apps List Failed: ${e.message}" }
 }
 
 def installed() {

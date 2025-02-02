@@ -1,5 +1,5 @@
 /*
-* Version 2.1.1
+* Version 3.0
 */
 
 jQuery( document ).ready( function( $ ) {
@@ -23,7 +23,7 @@ jQuery( document ).ready( function( $ ) {
 		var thisSave = $( this );
 		
 		// Get variables from page
-		var accessToken = $( 'input#accessToken' ).val()
+		var accessToken = $( 'input#accessToken' ).val();
 		var appID = $( 'input#appID' ).val();
 		var appState = $( 'input#appState' ).val();
 		var userOpts = $( 'input#userArray' ).val();
@@ -81,6 +81,9 @@ jQuery( document ).ready( function( $ ) {
 				// Options were updated successfully
 				if( response.status == 'success' ) {
 					
+					// Remove any page notices
+					$( 'div.page_notice' ).slideToggle();
+					
 					// Define toast
 					const Toast = Swal.mixin({
 						toast: true,
@@ -117,7 +120,7 @@ jQuery( document ).ready( function( $ ) {
 			complete: function() {
 				
 				// Redisplay icon
-				$( thisSave ).html( '<i class="material-icons">rocket</i>' );
+				$( thisSave ).html( '<i class="material-icons">rocket</i><span class="tooltiptext">Quick Save</span>' );
 			}
 		});
 	});
@@ -160,8 +163,8 @@ jQuery( document ).ready( function( $ ) {
 				html += '<div id="" class="rule_container">';
 
 					// Check hide counts option
-					var check_counts = $( 'input#hide_counts' ).is( ':checked' ) ? 'display: none;' : '';
-					var check_filters = $( 'input#hide_filters' ).is( ':checked' ) ? 'display: none;' : '';
+					var check_counts = $( 'span#hideCounts' ).hasClass( 'active' ) ? 'display: none;' : '';
+					var check_filters = $( 'span#hideFilters' ).hasClass( 'active' ) ? 'display: none;' : '';
 
 					// Hidden divs
 					html += '<input type="hidden" class="title_color" />';
@@ -631,7 +634,10 @@ jQuery( document ).ready( function( $ ) {
 	*********************************************************/
 	
 	// Copy rule
-	$( document ).on( 'click', 'i.copy_rule', function() {
+	$( document ).on( 'click', 'i.copy_rule', function(e) {
+		
+		// Prevent highlighting active row
+		e.stopPropagation();
 		
 		// Get variables
 		var thisCopy = $( this );
@@ -676,8 +682,12 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	// Delete duplicate rule
-	$( document ).on( 'click', 'span.delete_duplicate', function() {
+	$( document ).on( 'click', 'span.delete_duplicate', function(e) {
 		
+		// Prevent highlighting active row
+		e.stopPropagation();
+		
+		// Get variables
 		var thisDuplicate = $( this );
 		var dupeName = $( this ).parent().siblings( 'div.rule_title_left' ).children( 'span.rule_name' ).text();
 		
@@ -774,7 +784,7 @@ jQuery( document ).ready( function( $ ) {
 	*********************************************************/
 	
 	// Export options
-	$( 'span#generate_export').click( function() {
+	$( document ).on( 'click', 'span#generate_export', function() {
 		
 		// Get options from hidden input
 		var options = $( 'input#userArray' ).val();
@@ -784,7 +794,7 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	// Copy export to clipboard
-	$( 'span#copy_export' ).click( function() {
+	$( document ).on( 'click', 'span#copy_export', function() {
 		
 		// Get export value
 		var text = $( 'textarea#export_textarea' ).val();
@@ -823,31 +833,21 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	// Copy export change text
-	$( 'span#copy_export' ).mouseout( function() {
+	$( document ).on( 'mouseout', 'span#copy_export', function() {
 		
-		// Get tooltip element and alter text
-		var tooltip = document.getElementById( 'exportTooltip' );
-		tooltip.innerHTML = 'Copy to clipboard';
+		$( 'span#exportTooltip' ).html( 'Copy to clipboard' );
 	});
 	
 	// Import options
-	$( 'span#generate_import' ).click( function() {
+	$( document ).on( 'click', 'span#generate_import', function() {
 		
 		// Get import value
 		var import_opts = $( 'textarea#import_textarea' ).val();
 		if( import_opts == '' ) {
 			
-			Swal.fire({
-				titleText: "Import Content Missing",
-				text: "Please paste the contents of an export into the import textarea.",
-				icon: "question",
-				iconColor: "#d33",
-				confirmButtonColor: "#81bc00",
-				allowOutsideClick: false,
-				allowEscapeKey: false,
-				customClass: { popup: "headerError" }
-			});
-			
+			// Show import error
+			$( 'div#importEmptyError' ).show();
+			$( 'textarea#import_textarea' ).css( 'border', '1px solid red' );
 			return false;
 		}
 		
@@ -856,49 +856,70 @@ jQuery( document ).ready( function( $ ) {
 		try { var json = $.parseJSON( import_opts ); }
 		catch( err ) { json_check = false; }
 		
-		// If the data is good
-		if( json_check ) {
+		if( ! json_check ) {
 			
-			// Copy and paste into hidden input field
-			$( 'input#userArray' ).val( import_opts );
-		
-			// Click "Done" button
-			$( 'button#btnDone' ).click();
+			// Show import error
+			$( 'div#importMalformError' ).show();
+			$( 'textarea#import_textarea' ).css( 'border', '1px solid red' );
+			return false;
 		}
-		// Else the data is no good
+		
+		// Copy and paste into hidden input field
+		$( 'input#userArray' ).val( import_opts );
+
+		// Click "Done" button
+		$( 'button#btnDone' ).click();
+	});
+	
+	// Remove import errors from textarea when focused
+	$( document ).on( 'focus', 'textarea#import_textarea', function() {
+		
+		$( 'div#importEmptyError' ).hide();
+		$( 'div#importMalformError' ).hide();
+		$( 'textarea#import_textarea' ).css( 'border', '1px solid black' );
+	});
+	
+	/*********************************************************
+	Reset Options
+	*********************************************************/
+	$( document ).on( 'click', 'span#reset_opts', function() {
+		
+		// Use a quick notice as a confirmation
+		if( $( 'div#confirmReset' ).length == 0 ) {
+			
+			$( '<div id="confirmReset">Clicking the "Reset Options" button once more will permanently delete any customizations.</div>' ).insertBefore( $(this) );
+		}
 		else {
 			
-			Swal.fire({
-				titleText: "Import Content Malformed",
-				text: "There is a problem with the import data. Please ensure the data has been pasted correctly.",
-				icon: "question",
-				iconColor: "#d33",
-				confirmButtonColor: "#81bc00",
-				allowOutsideClick: false,
-				allowEscapeKey: false,
-				customClass: { popup: "headerError" }
-			});
+			// Get default setting
+			var get_defaults = $( 'input#load_default_opts' ).val();
+
+			// Set default setting
+			$( 'input#userArray' ).val( get_defaults );
+			
+			// Click "Done" button
+			$( 'button#btnDone' ).click();
 		}
 	});
 	
 	/*********************************************************
-	Global and Container: Counts and Filters
+	Global and Container: Counts and Filters; Machine Names
 	*********************************************************/
 	
 	// Global option hide container counts
-	$( 'input#hide_counts' ).change( function() {
+	$( 'span#hideCounts' ).click( function() {
 		
-		if( $( this ).is( ':checked' ) ) {
-			
-			$( 'span.group_rule_count' ).hide();
-			$( 'span#hideCounts' ).addClass( 'active' );
-			$( 'span#hideCounts span.tooltiptext' ).text( 'Show Counts' );
-		}
-		else {
+		if( $( this ).hasClass( 'active' ) ) {
 			
 			$( 'span.group_rule_count' ).show();
 			$( 'span#hideCounts' ).removeClass( 'active' );
 			$( 'span#hideCounts span.tooltiptext' ).text( 'Hide Counts' );
+		}
+		else {
+			
+			$( 'span.group_rule_count' ).hide();
+			$( 'span#hideCounts' ).addClass( 'active' );
+			$( 'span#hideCounts span.tooltiptext' ).text( 'Show Counts' );
 		}
 		
 		// Rebuild array
@@ -906,37 +927,45 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	// Global option hide container filters
-	$( 'input#hide_filters' ).change( function() {
+	$( 'span#hideFilters' ).click( function() {
 		
-		if( $( this ).is( ':checked' ) ) {
-			
-			$( 'span.container_filter' ).hide();
-			$( 'span#global_filter' ).hide();
-			$( 'span#hideFilters' ).addClass( 'active' );
-			$( 'span#hideFilters span.tooltiptext' ).text( 'Show Filters' );
-		}
-		else {
+		if( $( this ).hasClass( 'active' ) ) {
 			
 			$( 'span.container_filter' ).show();
 			$( 'span#global_filter' ).show();
 			$( 'span#hideFilters' ).removeClass( 'active' );
 			$( 'span#hideFilters span.tooltiptext' ).text( 'Hide Filters' );
 		}
+		else {
+			
+			$( 'span.container_filter' ).hide();
+			$( 'span#global_filter' ).hide();
+			$( 'span#hideFilters' ).addClass( 'active' );
+			$( 'span#hideFilters span.tooltiptext' ).text( 'Show Filters' );
+		}
 		
 		// Rebuild array
 		rebuildArray();
 	});
 	
-	// Sync hide counts buttons
-	$( 'span#hideCounts' ).click( function() {
+	// Global show/hide rule machine names
+	$( document ).on( 'click', 'span#hideMachines', function() {
 		
-		$( 'input#hide_counts' ).click();
-	});
-	
-	// Sync hide filters buttons
-	$( 'span#hideFilters' ).click( function() {
+		if( $( this ).hasClass( 'active' ) ) {
+			
+			$( 'ul.rulelist span.ruleType' ).show();
+			$( 'span#hideMachines' ).removeClass( 'active' );
+			$( 'span#hideMachines span.tooltiptext' ).text( 'Hide Machine Names' );
+		}
+		else {
+			
+			$( 'ul.rulelist span.ruleType' ).hide();
+			$( 'span#hideMachines' ).addClass( 'active' );
+			$( 'span#hideMachines span.tooltiptext' ).text( 'Show Machine Names' );
+		}
 		
-		$( 'input#hide_filters' ).click();
+		// Rebuild array
+		rebuildArray();
 	});
 	
 	// Filter global rules
@@ -1009,38 +1038,6 @@ jQuery( document ).ready( function( $ ) {
 	});
 	
 	/*********************************************************
-	Reset Options
-	*********************************************************/
-	$( 'span#reset_opts' ).click( function() {
-		
-		Swal.fire({
-			titleText: "Reset App Options",
-			text: "Permanently reset all options? This will restore all default app settings, and save the app. The window will return to the main Apps page.",
-			icon: "warning",
-			iconColor: "#81bc00",
-			showCancelButton: true,
-			confirmButtonColor: "#81bc00",
-			cancelButtonColor: "#d33",
-			confirmButtonText: "Reset",
-			allowOutsideClick: false,
-			allowEscapeKey: false,
-			customClass: { popup: "headerSuccess" }
-		}).then((result) => {
-			if (result.isConfirmed) {
-				
-				// Get default setting
-				var get_defaults = $( 'input#load_default_opts' ).val();
-
-				// Set default setting
-				$( 'input#userArray' ).val( get_defaults );
-
-				// Click "Done" button
-				$( 'button#btnDone' ).click();
-			}
-		});
-	});
-	
-	/*********************************************************
 	Build User Array: Updates options to hidden input field
 	*********************************************************/
 	function rebuildArray() {
@@ -1049,9 +1046,12 @@ jQuery( document ).ready( function( $ ) {
 		var rb_array = {};
 
 		// Push global options
-		rb_array.hide_counts = $( 'input#hide_counts' ).is( ':checked' ) ? 'true' : 'false';
-		rb_array.hide_filters = $( 'input#hide_filters' ).is( ':checked' ) ? 'true' : 'false';
+		rb_array.hide_counts = $( 'span#hideCounts' ).hasClass( 'active' ) ? 'true' : 'false';
+		rb_array.hide_filters = $( 'span#hideFilters' ).hasClass( 'active' ) ? 'true' : 'false';
+		rb_array.hide_machines = $( 'span#hideMachines' ).hasClass( 'active' ) ? 'true' : 'false';
 		rb_array.welcome_nag = $( 'input#welcome_nag' ).val();
+		rb_array.rule_machines = JSON.parse( $( 'input#ruleMachines' ).val() );
+		rb_array.check_machines = JSON.parse( $( 'input#checkMachines' ).val() );
 		rb_array.containers = [];
 
 		// Loop each container
@@ -1074,7 +1074,7 @@ jQuery( document ).ready( function( $ ) {
 			$( this ).children( 'ul' ).children( 'li' ).each( function(i, v) { this_array.rules.push( v.id ); });
 
 			// Count rules in this container and display on page
-			var count = this_array.rules.length;
+			var count = $( this ).find( 'ul.rulelist' ).children( ':visible' ).length;
 			var items = count == 1 ? 'item' : 'items';
 			$( this ).children( 'h4' ).find( 'span.group_rule_count' ).html( '<em>(' + count + ' ' + items + ')</em>' );
 
@@ -1093,21 +1093,138 @@ jQuery( document ).ready( function( $ ) {
 	}
 	
 	/*********************************************************
-	Page Actions
+	Page Options Overlay
 	*********************************************************/
 	
-	// Toggle main page options panel
+	// Toggle main page options overlay
 	$( document ).on( 'click', 'span#options_panel', function() {
 		
-		$( this ).toggleClass( 'active' );
-		$( 'div#options_section' ).fadeToggle();
-	});
-	
-	// Done function
-	$( document ).on( 'click', 'span#done_submit', function() {
+		var html = '';
+		html += '<div id="overlayAccordian">';
+			html += '<h3>Global Options</h3>';
+			html += '<div>';
+				html += '<p>Select which rules to display in the Rule Machine Manager main application.</p>';
 		
-		// Click "Done" button
-		$( 'button#btnDone' ).click();
+				html += "<div class='twoColumnRow'>";
+		
+					// Get all default machine types; and loop for input fields
+					var machineTypes = JSON.parse( $( 'input#load_default_opts' ).val() ).check_machines;
+					$( machineTypes ).each( function( i, v ) {
+						
+						html += "<div class='twoColumn'>";
+		
+							html += '<label class="ruleMachineRadio" for="' + v + 'Radio">' + camelCaseToPretty( v ) + '</label>';
+							html += '<input type="checkbox" class="mainOptsRadio" id="' + v + 'Radio" value="' + v + '">';
+						html += "</div>";
+					});
+		
+				html += "</div>";
+			html += '</div>';
+			html += '<h3>Export Options</h3>';
+			html += '<div>';
+				html += '<p>';
+					html += "Click the \"Export Options\" button to generate the app settings into the textarea. ";
+					html += "Copy/paste the text and save in a text document for importing at a later time.";
+				html += '</p>';
+				html += '<p>"Copy Options" will copy the text to the browser clipboard which can then be pasted into a document.</p>';
+				html += '<p><textarea id="export_textarea"></textarea></p>';
+				html += '<p>';
+					html += '<span id="generate_export" class="button"><i class="material-icons">import_export</i> Export Options</span>';
+					html += "<span class='tooltip tooltipBlock'>";
+						html += "<span id='copy_export' class='button'>";
+							html += "<span class='tooltiptext' id='exportTooltip'>Copy to clipboard</span>";
+						html += "<i class='material-icons'>content_copy</i> Copy Options";
+					html += "</span>";
+				html += '</p>';
+			html += '</div>';
+			html += '<h3>Import Options</h3>';
+			html += '<div>';
+				html += '<p>';
+					html += "Paste the contents from a previous export into the textarea.<br />"
+					html += "Click Import Options to populate the settings.<br />"
+					html += "<strong>NOTE:</strong> The page will reload automatically after clicking Import Options to save the settings."
+				html += '</p>';
+				html += '<div id="importEmptyError"><i class="material-icons">info</i> Import content cannot be empty.</div>';
+				html += '<div id="importMalformError"><i class="material-icons">info</i> Import content is malformed.</div>';
+				html += "<textarea id='import_textarea'></textarea>";
+				html += "<span id='generate_import' class='button'><i class='material-icons'>import_export</i> Import Options</span>";
+			html += '</div>';
+			html += '<h3>Reset Options</h3>';
+			html += '<div>';
+				html += '<p>';
+					html += "Use this tool to restore the app back to initial default values.<br />"
+                    html += "This can be useful if something is buggy, or to start a clean slate.<br />"
+					html += "<strong>Note:</strong> Clicking this button will erase any customizations and reload the page."
+				html += '</p>';
+				html += '<p>';
+					html += "<span id='reset_opts' class='button'><i class='material-icons'>restart_alt</i> Reset Options</span>"
+				html += '</p>';
+			html += '</div>';
+		html += '</div>';
+		
+		Swal.fire({
+			width: '50em',
+			titleText: "Options Panel",
+			html: html,
+			allowOutsideClick: false,
+			allowEscapeKey: false,
+			customClass: { popup: "headerSuccess", htmlContainer: "alignLeft" },
+			confirmButtonColor: "#81bc00",
+			showCancelButton: true,
+			cancelButtonColor: "#d33",
+			cancelButtonText: "Dismiss",
+			didOpen: function() {
+				
+				// Instantiate jquery accordian
+				$( "#overlayAccordian" ).accordion({ heightStyle: 'content' });
+				
+				// Instantiate jquery checkbox radio
+				$( 'input.mainOptsRadio').checkboxradio();
+				
+				// Populate rule machines checkboxes
+				var machines = $( 'input#ruleMachines' ).val();
+				machines = JSON.parse( machines );
+				
+				// Loop each radio machine type and check if checked
+				$( 'input.mainOptsRadio' ).each( function() {
+					if( $.inArray( $( this ).val(), machines ) > -1 ) {
+						
+						$( this ).prop( "checked", true ).checkboxradio( "refresh" );
+					}
+				});
+			}
+		}).then((result) => {
+			if (result.isConfirmed) {
+				
+				// Build array names list
+				var ruleNames = [];
+				
+				// Loop each machine type radio selection
+				$( 'input.mainOptsRadio' ).each( function() {
+					
+					// If this machine type is checked
+					if( $( this ).prop( "checked" ) == true ) { 
+						
+						// Add to array names list
+						ruleNames.push( $( this ).val() ); 
+						
+						// Show page elements
+						$( 'li.' + $( this ).val() ).show();
+					}
+					else {
+						
+						// Hide page elements
+						$( 'li.' + $( this ).val() ).hide();
+					}
+				});
+				
+				// Put array names list into input array in page
+				$( 'input#ruleMachines' ).val( JSON.stringify( ruleNames ) );
+				
+				// Rebuild Array
+				rebuildArray();
+			}
+		});
 	});
 	
 	/*********************************************************
@@ -1147,6 +1264,35 @@ jQuery( document ).ready( function( $ ) {
 			return "rgb(" + r + ", " + g + ", " + b + ")";
 		}
 	}
+	
+	// Done function
+	$( document ).on( 'click', 'span#done_submit', function() {
+		
+		// Click "Done" button
+		$( 'button#btnDone' ).click();
+	});
+	
+	// Camelcase to capitals and spaces
+	function camelCaseToPretty( str ) {
+		
+		return str
+		.replace(/([a-z])([A-Z])/g, '$1 $2') // Insert space between lowercase and uppercase
+		.replace(/^./, function(match) { return match.toUpperCase(); }); // Capitalize first letter
+	}
+	
+	// Populate default check rule machines array into hidden input (used for comparisons alert for new rule machine types)
+	var checkMachines = $( 'input#load_default_opts' ).val();
+	$( 'input#checkMachines' ).val( JSON.stringify( JSON.parse( checkMachines ).check_machines ) );
+	
+	// Check user rule machines against allowed rule machines (used for comparisons alert for delete rule machine type)
+	var userMachines = JSON.parse( $( 'input#ruleMachines' ).val() );
+	var allowedMachines = JSON.parse( $( 'input#checkMachines' ).val() );
+	userMachines = $.grep( userMachines, function( value ) { return $.inArray( value, allowedMachines ) > -1; });
+	
+	// Place updated array back into page
+	$( 'input#ruleMachines' ).val( JSON.stringify( userMachines ) );
+	
+	rebuildArray();
 	
 	/*********************************************************
 	Welcome/Helper Notice (Nag Notice)

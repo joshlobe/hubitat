@@ -1,3 +1,7 @@
+Version 3.0 (2025-02-02)
+* Added support for rules from other applications.
+* Moved options panel into new overlay.
+
 Version 2.1.1 (2025-01-30)
 * Fixed using app from remote admin.
 

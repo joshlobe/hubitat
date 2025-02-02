@@ -1,5 +1,5 @@
 /*
-* Version 2.1.1
+* Version 3.0
 */
 
 :root {
@@ -74,7 +74,8 @@ div#header_panel span.tooltip {
 	display: inline-block;
 }
 div#header_panel span.button.active {
-	background-color: #CCC;
+	background-color: var(--hubitat-green);
+	color: #FFF;
 }
 div#header_left {
 	margin-top: 0px;
@@ -94,6 +95,9 @@ div.section {
 span#create_group_button {
 	margin-right: 10px;
 }
+span#hideMachines i {
+	font-weight: bold;
+}
 
 /* Options panel */
 div#header_panel span.button i {
@@ -109,36 +113,15 @@ span#reset_opts i {
 	margin-top: -2px; 
 	margin-right: 5px;
 }
-div#options_section { 
-	display: none; 
-}
-div#options_section h2 {
-	text-align: center;
-}
-div#main_panel { 
-	border: 1px solid var(--hubitat-green); 
-	margin-bottom: 20px; 
-}
-div#main_panel hr {
-	border-top: 1px solid var(--hubitat-green);
-}
 textarea#export_textarea, 
 textarea#import_textarea { 
 	width: 100%; 
 	margin-top: 10px; 
-	height: 80px; 
-}
-div#export_panel div p, 
-div#import_panel div p { 
-	margin-bottom: 0px; 
+	height: 80px;
+	border-radius: 4px;
 }
 span#generate_export { 
 	margin-right: 10px; 
-}
-input#hide_counts, input#hide_filters { 
-	height: 16px; 
-	width: 16px; 
-	vertical-align: top; 
 }
 span#global_filter input {
 	height: 31px;
@@ -150,6 +133,47 @@ span#global_filter input {
 span#global_filter input::placeholder {
 	color: #CCC;
 }
+div#importEmptyError, div#importMalformError {
+	text-align: center;
+	color: red;
+	background-color: #DDD;
+	padding: 2px 5px;
+	border-radius: 4px;
+	display: none;
+}
+div#importEmptyError i, div#importMalformError i {
+	font-size: 18px;
+	vertical-align: text-top;
+}
+div#confirmReset {
+	text-align: center;
+	color: red;
+	background-color: #DDD;
+	padding: 2px 5px;
+	border-radius: 4px;
+	margin-bottom: 10px;
+}
+div#overlayAccordian label.ruleMachineRadio {
+	display: inline-block;
+	width: 100%;
+	margin-bottom: 10px;
+	text-align: left;
+}
+div#overlayAccordian label.ui-state-active, div#overlayAccordian label.ui-button:active {
+	background: var(--hubitat-green);
+	border: 1px solid green;
+	box-shadow: none;
+}
+div#overlayAccordian label.ui-visual-focus {
+	box-shadow: none;
+}
+div#overlayAccordian, table#containerOverlayOptions {
+	font-size: 14px;
+}
+div#overlayAccordian div.twoColumn {
+	padding: 0px 5px;
+}
+
 
 /* Rules Containers */
 div#rules_container { 
@@ -184,6 +208,9 @@ span.container_filter input.active, span#global_filter input.active {
 	background-color: var(--hubitat-green);
 	color: #FFF;
 	border: 1px solid black;
+}
+span.ruleType {
+	margin-left: 10px;
 }
 
 /* Rules */
@@ -353,14 +380,17 @@ div.sp-replacer.sp-light:hover {
 
 /* Notice blocks */
 div#rules_found, 
+div#rule_machines_found,
+div#rule_machines_deleted,
 div#rules_deleted,
 div#initial_install,
 div.notice_block { 
 	border: 1px solid #8ac6eb; 
-	padding: 20px; 
+	padding: 10px; 
 	border-radius: 4px; 
 	margin-bottom: 20px; 
 	background-color: #f2faff; 
+	font-size: 14px;
 }
 div.error_block {
 	border: 1px solid #ff6666; 
@@ -371,7 +401,7 @@ div.error_block {
 }
 i.notification { 
 	margin-right: 10px; 
-	vertical-align: bottom; 
+	vertical-align: middle; 
 }
 
 /* Tooltips */
@@ -407,6 +437,9 @@ i.notification {
 .tooltip:hover .tooltiptext { 
 	visibility: visible; 
 	opacity: 1; 
+}
+.tooltip.tooltipBlock {
+	display: inline-block;
 }
 
 /* Footer */
@@ -463,6 +496,10 @@ input#overlayTitleBold:checked {
 table#containerOverlayOptions tr td {
 	padding-bottom: 20px;
 }
+h3.ui-state-active {
+	background: var(--hubitat-green) !important;
+	border: 1px solid green !important;
+}
 
 /* Multi Select and Drag */
 ul.rulelist li.selected {
@@ -491,7 +528,6 @@ ul.rulelist li.ui-sortable-placeholder {
 .twoColumn {
 	float: left;
 	width: 49.97%;
-	paddging: 10px;
 }
 .twoColumnRow:after {
 	content: "";
@@ -560,6 +596,11 @@ span#quick_save i.spin {
 @keyframes spin {
     from {transform:rotate(0deg);}
     to {transform:rotate(360deg);}
+}
+
+/* Tables */
+table#appDetailsTable {
+	font-size: 14px;
 }
 
 /**
