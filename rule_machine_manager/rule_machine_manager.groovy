@@ -34,7 +34,7 @@ import groovy.json.JsonOutput
 import groovyx.net.http.HttpResponseException
 
 // Define versions
-def version() { "3.0" }
+def version() { "3.1" }
 def js_version() { "3.0" }
 def css_version() { "3.0" }
 
@@ -447,25 +447,25 @@ def defaultUserArrayText() {
     buildRules += ']'
     
     // Create text string of plugin defaults
-    text = '''{
-        "hide_counts":"false",
-        "hide_filters":"false",
-		"hide_machines": "false",
-		"welcome_nag": "true",
-		"rule_machines": ''' + buildNames + ''',
-		"check_machines": ''' + buildNames + ''',
-        "containers":[{
-			"name":"Original Rules",
-            "slug":"original-rules",
-            "title_color":"",
-            "title_opacity":"",
-            "title_bold":"",
-            "container_color":"",
-            "container_opacity":"",
-            "visible":true,
-			"rules": ''' + buildRules + '''
-		}]
-	}'''
+    text = '{'
+        text += '"hide_counts":"false",'
+        text += '"hide_filters":"false",'
+        text += '"hide_machines":"false",'
+        text += '"welcome_nag":"true",'
+		text += '"rule_machines": ' + buildNames + ','
+		text += '"check_machines": ' + buildNames + ','
+        text += '"containers":[{'
+            text += '"name":"Original Rules",'
+            text += '"slug":"original-rules",'
+            text += '"title_color":"",'
+            text += '"title_opacity":"",'
+            text += '"title_bold":"",'
+            text += '"container_color":"",'
+            text += '"container_opacity":"",'
+            text += '"visible":true,'
+            text += '"rules": ' + buildRules
+        text += '}]'
+    text += '}'
     
     return text
 }
@@ -475,7 +475,7 @@ def checkForNewMachines( userRules ) {
     
     // Get default and user values
     defaults = new JsonSlurper().parseText( defaultUserArrayText() ).check_machines
-    saved = userRules.check_machines
+    saved = userRules.check_machines ? userRules.check_machines : defaults
     
     // Remove from defaults any values already saved
     saved.each{ defaults.removeAll( it ) }
@@ -509,7 +509,7 @@ def checkForDeletedMachines( userRules ) {
     
     // Get default and user values
     defaults = new JsonSlurper().parseText( defaultUserArrayText() ).check_machines
-    saved = userRules.check_machines
+    saved = userRules.check_machines ? userRules.check_machines : defaults
     
     // Loop each defaults and remove if checked
 	defaults.each{ saved.removeAll( it ) }
@@ -712,11 +712,11 @@ def populateRuleList() {
                         // If this apps rules are in the grandchildren
                         if( ruleName == "Button Controllers" ) {
                             
-                            // Loop children (these are all rule app ids)
+                            // Loop children
                             it.children.each{
                                 
+                                // Loop children again
                                 it.children.each{
-
 
                                     // Create submap (define any needed variables)
                                     createRulelistSubmap( ruleName, camelName, it )
@@ -726,7 +726,7 @@ def populateRuleList() {
                         // Else app rules are in the children
                         else {
 
-                            // Loop children (these are all rule app ids)
+                            // Loop children
                             it.children.each{
 
                                 // Create submap (define any needed variables)

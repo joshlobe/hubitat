@@ -4,11 +4,11 @@
 	"author": "Josh Lobe",
 	"documentationLink": "https://github.com/joshlobe/hubitat",
 	"communityLink": "https://community.hubitat.com/t/initial-release-rule-machine-manager-new-rule-machine-interface",
-	"version": "3.0",
-	"dateReleased": "2025-02-02",
+	"version": "3.1",
+	"dateReleased": "2025-02-03",
 	"licenseFile": "",
 	"tags": "Rule Machine",
-	"releaseNotes": "3.0 - View full changelog here: https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt",
+	"releaseNotes": "3.1 - View full changelog here: https://raw.githubusercontent.com/joshlobe/hubitat/main/rule_machine_manager/changelog.txt",
 	"apps" : [
 		{
 			"id" : "6wjv6vft-geb7-n2ex-rq4c-vvd32wqw4379",

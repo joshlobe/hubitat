@@ -1,3 +1,6 @@
+Version 3.1 (2025-02-03)
+* Fixed java error removeAll() line 515.
+
 Version 3.0 (2025-02-02)
 * Added support for rules from other applications.
 * Moved options panel into new overlay.
